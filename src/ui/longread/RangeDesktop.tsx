@@ -1,0 +1,143 @@
+"use client";
+
+import { useRef } from "react";
+import Image from "next/image";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { ProductHotspotDesktop } from "./ProductHotspot.desktop";
+import { Frame } from "./Frame";
+
+function Tile({
+	src,
+	alt,
+	y,
+	className,
+	pos = "50% 50%",
+	priority = false,
+}: {
+	src: string;
+	alt: string;
+	y: MotionValue<string>;
+	className: string;
+	pos?: string;
+	priority?: boolean;
+}) {
+	return (
+		<motion.figure className={className} style={{ y }}>
+			{/* Внутри Frame НЕ задаём скругления — их даёт Frame */}
+			<Image
+				src={src}
+				alt={alt}
+				fill
+				sizes="50vw"
+				className="object-cover"
+				style={{ objectPosition: pos }}
+				priority={priority}
+			/>
+			<figcaption className="sr-only">{alt}</figcaption>
+		</motion.figure>
+	);
+}
+
+export function RangeDesktop() {
+	const ref = useRef<HTMLDivElement>(null);
+	const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+
+	// Параллакс
+	const ySlow = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+	const yMid = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
+	const yFast = useTransform(scrollYProgress, [0, 1], ["-14%", "14%"]);
+
+	// Текст
+	const titleX = useTransform(scrollYProgress, [0.06, 0.18], ["-16px", "0px"]);
+	const titleOpacity = useTransform(scrollYProgress, [0.06, 0.18], [0, 1]);
+	const copyOpacity = useTransform(scrollYProgress, [0.12, 0.28], [0, 1]);
+
+	return (
+		<section id="range" ref={ref} className="relative h-[420vh] bg-black text-white">
+			<div className="sticky top-0 h-screen overflow-hidden">
+				<div className="absolute inset-x-0 top-0 z-10 h-[18vh] bg-gradient-to-b from-black to-transparent" />
+
+				<div className="relative z-20 mx-auto flex h-full max-w-7xl items-center px-6">
+					<div className="grid h-[80vh] w-full grid-cols-12 gap-6">
+						{/* LEFT */}
+						<div className="col-span-5 flex">
+							<div className="self-center">
+								<motion.h2
+									className="mb-3 text-5xl font-black leading-tight"
+									style={{ x: titleX, opacity: titleOpacity }}
+								>
+									ГОТОВ К ПОЛЮ
+								</motion.h2>
+								<motion.p className="max-w-md text-white/85" style={{ opacity: copyOpacity }}>
+									Функция первична. Материалы — выносливые, посадка — рабочая, эстетика — строгая.
+								</motion.p>
+								<motion.ul className="mt-6 space-y-2 text-white/80" style={{ opacity: copyOpacity }}>
+									<li>• защита от износа и погоды</li>
+									<li>• модульность и крепления</li>
+									<li>• тёмная палитра ради фокуса</li>
+								</motion.ul>
+							</div>
+						</div>
+
+						{/* RIGHT: ровный кадр с мозаикой */}
+						<Frame className="col-span-7">
+							<div className="grid h-full grid-cols-6 grid-rows-6 gap-4 bg-black/10">
+								<Tile
+									src="/images/longread/range-1.avif"
+									alt="Петлевая панель"
+									y={ySlow}
+									className="relative col-span-3 row-span-6"
+									pos="55% 40%"
+									priority
+								/>
+								<Tile
+									src="/images/longread/range-2.avif"
+									alt="Ламинированный шов"
+									y={yMid}
+									className="relative col-span-3 col-start-4 row-span-3 row-start-1"
+									pos="60% 50%"
+								/>
+								<Tile
+									src="/images/longread/range-3.avif"
+									alt="Усиленный бар-так"
+									y={yFast}
+									className="relative col-span-3 col-start-4 row-span-3 row-start-4"
+									pos="58% 58%"
+								/>
+							</div>
+
+							{/* Хот-споты строго к тому же кадру */}
+							<ProductHotspotDesktop
+								x={30}
+								y={40}
+								label="Панель под съёмный ярлык"
+								href="/products/loop-panel"
+								progress={scrollYProgress}
+								appearAt={0.6}
+							/>
+							<ProductHotspotDesktop
+								x={75}
+								y={28}
+								label="Влагозащитная молния"
+								href="/products/sealed-zip"
+								progress={scrollYProgress}
+								appearAt={0.65}
+							/>
+							<ProductHotspotDesktop
+								x={74}
+								y={72}
+								label="Бар-так усиленный"
+								href="/products/bartack-detail"
+								side="left"
+								progress={scrollYProgress}
+								appearAt={0.7}
+							/>
+						</Frame>
+					</div>
+				</div>
+
+				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-[18vh] bg-gradient-to-t from-black/70 to-transparent" />
+			</div>
+		</section>
+	);
+}
