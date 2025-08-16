@@ -1,33 +1,39 @@
-import { ProductListByCollectionDocument } from "@/gql/graphql";
-import { executeGraphQL } from "@/lib/graphql";
-import { ProductList } from "@/ui/components/ProductList";
+/* eslint-disable import/no-default-export */
+import { HeroBlock } from "@/ui/components/HeroBlock";
+import { UndergroundDesktop } from "@/ui/longread/UndergroundDesktop";
+import { ArenaDesktop } from "@/ui/longread/ArenaDesktop";
+import { RangeDesktop } from "@/ui/longread/RangeDesktop";
+import { SectionNav } from "@/ui/longread/SectionNav"; // ← навигация по секциям
+import { ChoosePath } from "@/ui/longread/ChoosePath";
+import { Subscribe } from "@/ui/longread/Subscribe";
+import { BenefitsDesktop } from "@/ui/longread/BenefitsDesktop";
 
-export const metadata = {
-	title: "ACME Storefront, powered by Saleor & Next.js",
-	description:
-		"Storefront Next.js Example for building performant e-commerce experiences with Saleor - the composable, headless commerce platform for global brands.",
-};
-
-export default async function Page(props: { params: Promise<{ channel: string }> }) {
-	const params = await props.params;
-	const data = await executeGraphQL(ProductListByCollectionDocument, {
-		variables: {
-			slug: "featured-products",
-			channel: params.channel,
-		},
-		revalidate: 60,
-	});
-
-	if (!data.collection?.products) {
-		return null;
-	}
-
-	const products = data.collection?.products.edges.map(({ node: product }) => product);
-
+export default function HomePage() {
 	return (
-		<section className="mx-auto max-w-7xl p-8 pb-16">
-			<h2 className="sr-only">Product list</h2>
-			<ProductList products={products} />
-		</section>
+		<>
+			{/* Hero должен иметь стабильный якорь */}
+			<section id="hero">
+				<HeroBlock
+					videoMp4="/videos/hero.mp4"
+					videoWebm="/videos/hero.webm"
+					poster="/videos/hero-poster.jpg"
+					title="GRAYCARDINAL"
+					kicker="TACTICAL • UNDERGROUND • SPORT"
+					subline="Городской тактикульный кэжуал: сила, функция, легенда."
+					align="center"
+					vAlign="center"
+					onScrollTo="#underground" // ← было #route
+				/>
+			</section>
+
+			{/* Лонгрид секции — у компонентов уже заданы id: underground / arena / range */}
+			<UndergroundDesktop />
+			<ArenaDesktop />
+			<RangeDesktop />
+			<BenefitsDesktop />
+			<SectionNav />
+			<ChoosePath />
+			<Subscribe />
+		</>
 	);
 }
