@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       '@adyen/adyen-web':
-        specifier: 5.48.1
-        version: 5.48.1
+        specifier: 5.53.3
+        version: 5.53.3
       '@adyen/api-library':
         specifier: 15.0.0-beta
         version: 15.0.0-beta
