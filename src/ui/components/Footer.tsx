@@ -4,7 +4,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Send, Globe } from "lucide-react";
-import { SiTelegram, SiVk } from "@icons-pack/react-simple-icons";
+import { SiTelegram, SiVk } from "react-icons/si";
+export type FooterProps = { channel: string }; // можно пока не использовать
 
 interface FooterLink {
 	href: string;
@@ -53,7 +54,7 @@ const LEGAL = [
 	{ href: "/legal/cookies", label: "Файлы cookie" },
 ];
 
-export function Footer() {
+export function Footer({ channel }: FooterProps) {
 	const [email, setEmail] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [status, setStatus] = useState<"idle" | "ok" | "fail">("idle");
@@ -77,7 +78,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="border-t border-white/10 bg-neutral-950 text-neutral-300">
+		<footer data-channel={channel} className="border-t border-white/10 bg-neutral-950 text-neutral-300">
 			<div className="mx-auto max-w-7xl px-6 py-16">
 				<div className="grid grid-cols-1 gap-12 md:grid-cols-12">
 					{/* 4/12: бренд + рассылка */}

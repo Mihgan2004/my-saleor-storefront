@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion"
 import { usePathname } from "next/navigation";
 import { Command, Heart, Menu, Search, ShoppingBag, User as UserIcon, X } from "lucide-react";
 import { Logo } from "@/ui/components/Logo";
+export type HeaderProps = { channel: string };
 
 type CartItem = { lineId?: string; variantId?: string; qty?: number; price?: number };
 interface Cart {
@@ -193,7 +194,7 @@ const MobileMenu: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
 };
 
 /* ========== HEADER (glass plaque) ========== */
-const Header: React.FC = () => {
+const Header: React.FC<HeaderProps> = ({ channel }) => {
 	const pathname = usePathname();
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -236,6 +237,7 @@ const Header: React.FC = () => {
 		],
 		[],
 	);
+	void channel;
 
 	return (
 		<>
@@ -419,4 +421,4 @@ const Header: React.FC = () => {
 	);
 };
 
-export { Header };
+export default Header; // <- ОБЯЗАТЕЛЬНО
