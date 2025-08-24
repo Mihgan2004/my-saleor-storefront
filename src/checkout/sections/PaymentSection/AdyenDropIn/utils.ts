@@ -1,64 +1,42 @@
-import { type CoreOptions } from "@adyen/adyen-web/dist/types/core/types";
 import {
 	type AdyenCheckoutInstanceOnAdditionalDetails,
 	type AdyenCheckoutInstanceOnSubmit,
 	type AdyenGatewayInitializePayload,
-	type ApplePayCallback,
-} from "@/checkout/sections/PaymentSection/AdyenDropIn/types";
+	type DropinElement,
+	type AdyenCheckoutInstanceState,
+} from "./types";
 
-interface CreateAdyenCheckoutConfigProps extends AdyenGatewayInitializePayload {
-	onSubmit: AdyenCheckoutInstanceOnSubmit;
-	onAdditionalDetails: AdyenCheckoutInstanceOnAdditionalDetails;
+// Тип конфига, который ждёт AdyenCheckout(..)
+// Нам не нужны внутренние типы SDK — описываем лишь то, что реально используем.
+type CoreOptions = {
+	environment: string;
+	clientKey: string;
+	locale?: string;
+	amount?: { value: number; currency: string };
+	paymentMethodsResponse: unknown;
+	analytics?: { enabled: boolean };
+	onSubmit?: (state: AdyenCheckoutInstanceState, component: DropinElement) => void | Promise<void>;
+	onAdditionalDetails?: (state: AdyenCheckoutInstanceState, component: DropinElement) => void | Promise<void>;
+};
+
+export function createAdyenCheckoutConfig(
+	payload: AdyenGatewayInitializePayload & {
+		onSubmit?: AdyenCheckoutInstanceOnSubmit;
+		onAdditionalDetails?: AdyenCheckoutInstanceOnAdditionalDetails;
+	},
+): CoreOptions {
+	const { clientKey, environment, locale, amount, paymentMethodsResponse, onSubmit, onAdditionalDetails } =
+		payload;
+
+	return {
+		clientKey,
+		environment,
+		locale,
+		amount,
+		paymentMethodsResponse,
+		analytics: { enabled: true },
+		// оборачиваем чтобы не тянуть типы из SDK
+		onSubmit: (state, component) => onSubmit?.(state, component),
+		onAdditionalDetails: (state, component) => onAdditionalDetails?.(state, component),
+	};
 }
-
-export const createAdyenCheckoutConfig = ({
-	paymentMethodsResponse,
-	clientKey,
-	environment,
-	onSubmit,
-	onAdditionalDetails,
-}: CreateAdyenCheckoutConfigProps): CoreOptions => ({
-	paymentMethodsResponse,
-	environment,
-	clientKey,
-	onSubmit,
-	onAdditionalDetails,
-	locale: "en-US",
-	analytics: {
-		enabled: true,
-	},
-	// Any payment method specific configuration. Find the configuration specific to each payment method: https://docs.adyen.com/payment-methods
-	// For example, this is 3D Secure configuration for cards:
-	paymentMethodsConfiguration: {
-		card: {
-			hasHolderName: true,
-			holderNameRequired: true,
-			billingAddressRequired: false,
-		},
-		applepay: {
-			buttonType: "plain",
-			buttonColor: "black",
-			onPaymentMethodSelected: (
-				resolve: ApplePayCallback,
-				_reject: ApplePayCallback,
-				event: ApplePayJS.ApplePayPaymentMethodSelectedEvent,
-			) => {
-				resolve(event.paymentMethod);
-			},
-			onShippingContactSelected: (
-				resolve: ApplePayCallback,
-				_reject: ApplePayCallback,
-				event: ApplePayJS.ApplePayShippingContactSelectedEvent,
-			) => {
-				resolve(event.shippingContact);
-			},
-			onShippingMethodSelected: (
-				resolve: ApplePayCallback,
-				_reject: ApplePayCallback,
-				event: ApplePayJS.ApplePayShippingMethodSelectedEvent,
-			) => {
-				resolve(event.shippingMethod);
-			},
-		},
-	},
-});

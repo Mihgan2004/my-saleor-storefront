@@ -1,44 +1,45 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+// src/checkout/sections/PaymentSection/AdyenDropIn/createAdyenCheckout.ts
+
 import AdyenCheckout from "@adyen/adyen-web";
-import { type CardElementData } from "@adyen/adyen-web/dist/types/components/Card/types";
-import type DropinElement from "@adyen/adyen-web/dist/types/components/Dropin";
 import { PaymentResponse as AdyenApiPaymentResponse } from "@adyen/api-library/lib/src/typings/checkout/paymentResponse";
 import { type CreateCheckoutSessionResponse } from "@adyen/api-library/lib/src/typings/checkout/createCheckoutSessionResponse";
-import { type AdyenPaymentResponse } from "./types";
+import {
+	type AdyenCheckoutInstanceOnAdditionalDetails,
+	type AdyenCheckoutInstanceOnSubmit,
+	type AdyenCheckoutInstanceState,
+	type DropinElement,
+} from "./types";
 import { replaceUrl } from "@/checkout/lib/utils/url";
+
+// Берём стабильные типы из api-library только для результата платежа
 
 export type AdyenDropInCreateSessionResponse = {
 	session: CreateCheckoutSessionResponse;
 	clientKey?: string;
 };
-export type PostAdyenDropInPaymentsDetailsResponse = {
-	payment: AdyenPaymentResponse;
-	orderId: string;
-};
+
 export type PostAdyenDropInPaymentsResponse = {
-	payment: AdyenPaymentResponse;
+	payment: AdyenApiPaymentResponse;
 	orderId: string;
 };
 
-export type AdyenCheckoutInstanceState = {
-	isValid?: boolean;
-	data: CardElementData & Record<string, any>;
+export type PostAdyenDropInPaymentsDetailsResponse = {
+	payment: AdyenApiPaymentResponse;
+	orderId: string;
 };
-export type AdyenCheckoutInstanceOnSubmit = (
-	state: AdyenCheckoutInstanceState,
-	component: DropinElement,
-) => Promise<void> | void;
 
-export type AdyenCheckoutInstanceOnAdditionalDetails = (
-	state: AdyenCheckoutInstanceState,
-	component: DropinElement,
-) => Promise<void> | void;
+// вспомогательные типы для Apple Pay (без внутренних импортов SDK)
+type ApplePayResolve = (value: unknown) => void;
+type ApplePayEvent = {
+	paymentMethod?: unknown;
+	shippingContact?: unknown;
+	shippingMethod?: unknown;
+};
 
-type ApplePayCallback = <T>(value: T) => void;
-
+/**
+ * Создаёт инстанс AdyenCheckout (session-интеграция).
+ * Никаких внутренних типов SDK, только приведение к типу параметра функции.
+ */
 export function createAdyenCheckoutInstance(
 	adyenSessionResponse: AdyenDropInCreateSessionResponse,
 	{
@@ -49,24 +50,26 @@ export function createAdyenCheckoutInstance(
 		onAdditionalDetails: AdyenCheckoutInstanceOnAdditionalDetails;
 	},
 ) {
-	return AdyenCheckout({
+	const opts = {
 		locale: "en-US",
 		environment: "test",
+		// clientKey обязателен в web-SDK; если он есть — пробрасываем
 		clientKey: adyenSessionResponse.clientKey,
 		session: {
 			id: adyenSessionResponse.session.id,
 			sessionData: adyenSessionResponse.session.sessionData,
 		},
-		onPaymentCompleted: (result: any, component: any) => {
+		onPaymentCompleted: (result: unknown, component: unknown) => {
+			// можете добавить свою телеметрию/логирование
 			console.info(result, component);
 		},
-		onError: (error: any, component: any) => {
-			console.error(error.name, error.message, error.stack, component);
+		onError: (error: unknown, component: unknown) => {
+			const e = error as { name?: string; message?: string; stack?: string };
+			console.error(e?.name ?? "AdyenError", e?.message, e?.stack, component);
 		},
-		onSubmit,
-		onAdditionalDetails,
-		// Any payment method specific configuration. Find the configuration specific to each payment method: https://docs.adyen.com/payment-methods
-		// For example, this is 3D Secure configuration for cards:
+		onSubmit: (state: AdyenCheckoutInstanceState, component: DropinElement) => onSubmit(state, component),
+		onAdditionalDetails: (state: AdyenCheckoutInstanceState, component: DropinElement) =>
+			onAdditionalDetails(state, component),
 		paymentMethodsConfiguration: {
 			card: {
 				hasHolderName: true,
@@ -76,63 +79,61 @@ export function createAdyenCheckoutInstance(
 			applepay: {
 				buttonType: "plain",
 				buttonColor: "black",
-				onPaymentMethodSelected: (resolve: ApplePayCallback, reject: ApplePayCallback, event) => {
-					resolve(event.paymentMethod);
-				},
-				onShippingContactSelected: (resolve: ApplePayCallback, reject: ApplePayCallback, event) => {
-					resolve(event.shippingContact);
-				},
-				onShippingMethodSelected: (resolve: ApplePayCallback, reject: ApplePayCallback, event) => {
-					resolve(event.shippingMethod);
-				},
+				onPaymentMethodSelected: (resolve: ApplePayResolve, _reject: ApplePayResolve, event: ApplePayEvent) =>
+					resolve(event.paymentMethod),
+				onShippingContactSelected: (
+					resolve: ApplePayResolve,
+					_reject: ApplePayResolve,
+					event: ApplePayEvent,
+				) => resolve(event.shippingContact),
+				onShippingMethodSelected: (
+					resolve: ApplePayResolve,
+					_reject: ApplePayResolve,
+					event: ApplePayEvent,
+				) => resolve(event.shippingMethod),
 			},
 		},
-		analytics: {
-			enabled: false,
-		},
-	});
+		analytics: { enabled: false },
+	};
+
+	// Ключевой трюк: приводим объект к типу 1-го параметра AdyenCheckout,
+	// не импортируя внутренние типы SDK и не споря о несовпадении generic-ов.
+	return AdyenCheckout(opts as Parameters<typeof AdyenCheckout>[0]);
 }
 
+/**
+ * Унифицированная обработка результата платежа.
+ */
 export function handlePaymentResult(
 	saleorApiUrl: string,
 	result: PostAdyenDropInPaymentsResponse | PostAdyenDropInPaymentsDetailsResponse,
 	component: DropinElement,
 ) {
 	switch (result.payment.resultCode) {
-		// @todo https://docs.adyen.com/online-payments/payment-result-codes
-		case AdyenApiPaymentResponse.ResultCodeEnum.AuthenticationFinished:
-		case AdyenApiPaymentResponse.ResultCodeEnum.Cancelled:
-		case AdyenApiPaymentResponse.ResultCodeEnum.ChallengeShopper:
-		case AdyenApiPaymentResponse.ResultCodeEnum.Error:
-		case AdyenApiPaymentResponse.ResultCodeEnum.IdentifyShopper:
-		case AdyenApiPaymentResponse.ResultCodeEnum.Pending:
-		case AdyenApiPaymentResponse.ResultCodeEnum.PresentToShopper:
-		case AdyenApiPaymentResponse.ResultCodeEnum.Received:
-		case AdyenApiPaymentResponse.ResultCodeEnum.RedirectShopper:
-		case AdyenApiPaymentResponse.ResultCodeEnum.Refused: {
-			console.error(result);
-			component.setStatus("error", {
-				message: `${result.payment.resultCode}: ${result.payment.refusalReason as string}`,
-			});
-			return;
-		}
-
+		// @todo при необходимости расширьте обработку кодов
 		case AdyenApiPaymentResponse.ResultCodeEnum.Authorised:
 		case AdyenApiPaymentResponse.ResultCodeEnum.Success: {
-			component.setStatus("success");
+			component.setStatus?.("success");
 			const domain = new URL(saleorApiUrl).hostname;
 			const newUrl = replaceUrl({
 				query: {
 					checkout: undefined,
 					order: result.orderId,
 					saleorApiUrl,
-					// @todo remove `domain`
-					// https://github.com/saleor/saleor-dashboard/issues/2387
-					// https://github.com/saleor/saleor-app-sdk/issues/87
-					domain,
+					domain, // временный хак под Dashboard (см. комментарии в исходниках)
 				},
 			});
 			window.location.href = newUrl;
+			return;
+		}
+
+		default: {
+			component.setStatus?.("error", {
+				message: `${result.payment.resultCode}: ${
+					(result.payment as unknown as { refusalReason?: string }).refusalReason ?? ""
+				}`,
+			});
+			console.error(result);
 			return;
 		}
 	}
