@@ -13,7 +13,7 @@ const hsla = (v: string, a: number | string = 1) => `hsl(var(${v}) / ${a})`;
 
 const config: Config = {
 	darkMode: ["class"],
-	content: ["./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+	content: ["./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./ui/**/*.{ts,tsx}"],
 	safelist: [
 		// Цветовые утилиты (на всякий случай для динамики классов)
 		"text-crimson",
@@ -48,59 +48,109 @@ const config: Config = {
 		container: {
 			center: true,
 			padding: { DEFAULT: "1rem", sm: "1.5rem", lg: "2rem" },
-			screens: { sm: "640px", md: "768px", lg: "1024px", xl: "1280px", "2xl": "1400px" },
+			screens: {
+				sm: "640px",
+				md: "768px",
+				lg: "1024px",
+				xl: "1280px",
+				"2xl": "1320px", // Используем ваше значение
+			},
 		},
 		extend: {
-			// ===== Цвета темы (из CSS vars) =====
+			// ===== Унифицированные цвета =====
 			colors: {
-				// Base / Surfaces
-				obsidian: { DEFAULT: hsl("--obsidian"), fg: hsl("--white") }, // #0B0D10
-				charcoal: hsl("--charcoal"), // #111317
-				graphite: hsl("--graphite"), // #181B20
+				// Базовые поверхности (ваша упрощенная система + оригинальная детализация)
+				bg: hsl("--obsidian"), // Основной фон
+				surface: hsl("--charcoal"), // Поверхности
+				elevated: hsl("--graphite"), // Приподнятые элементы
+				line: hsl("--zinc"), // Границы
 
-				// Borders / Muted
-				zinc: hsl("--zinc"), // #2A2E36
-				slate: hsl("--slate"), // #3A404A
+				// Детальная система (сохраняем для совместимости)
+				obsidian: { DEFAULT: hsl("--obsidian"), fg: hsl("--white") },
+				charcoal: hsl("--charcoal"),
+				graphite: hsl("--graphite"),
+				zinc: hsl("--zinc"),
+				slate: hsl("--slate"),
 
-				// Text
+				// Текст (ваша система + детализация)
+				text: {
+					DEFAULT: hsl("--white"),
+					muted: hsl("--silver"),
+				},
 				white: hsl("--white"),
 				silver: hsl("--silver"),
 
-				// Brand
+				// Акценты (ваша система + детализация бренда)
+				accent: hsl("--accent"), // Ваш основной акцент
+				accentHover: hsl("--accent-hover"),
+				tech: hsl("--tech"),
+
+				// Детальные брендовые цвета (сохраняем)
 				crimson: {
-					DEFAULT: hsl("--crimson"), // #C0162C
-					hover: hsl("--crimson-hover"), // #D21F37
+					DEFAULT: hsl("--crimson"),
+					hover: hsl("--crimson-hover"),
 					soft: hsl("--crimson-soft"),
 					fg: hsl("--white"),
 				},
 				olive: {
-					DEFAULT: hsl("--olive"), // #60704A
-					hover: hsl("--olive-hover"), // #6E7E54
+					DEFAULT: hsl("--olive"),
+					hover: hsl("--olive-hover"),
 					soft: hsl("--olive-soft"),
 					fg: hsl("--white"),
 				},
 				steel: {
-					DEFAULT: hsl("--steel"), // #4F5B66
+					DEFAULT: hsl("--steel"),
 					soft: hsl("--steel-soft"),
 					fg: hsl("--white"),
 				},
 
-				// Status
-				emerald: hsl("--emerald"), // #2EA56A
-				amber: hsl("--amber"), // #D29C1E
+				// Статусные цвета
+				emerald: hsl("--emerald"),
+				amber: hsl("--amber"),
 
-				// Legacy alias
+				// Legacy aliases для совместимости
 				fortress: { DEFAULT: hsl("--obsidian"), fg: hsl("--white") },
 				shadow: { DEFAULT: hsl("--zinc"), light: hsl("--slate"), dark: hsl("--charcoal") },
 			},
 
-			// ===== Шрифты =====
-			fontFamily: {
-				sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
-				tactical: ["var(--font-display)", "var(--font-sans)", ...defaultTheme.fontFamily.sans],
-				mono: ["var(--font-mono)", ...defaultTheme.fontFamily.mono],
+			// ===== Унифицированные радиусы =====
+			borderRadius: {
+				xs: "0.25rem",
+				sm: "var(--radius-sm, 0.375rem)", // Ваша переменная + фоллбэк
+				DEFAULT: "0.5rem",
+				md: "var(--radius-md, 0.5rem)",
+				lg: "var(--radius-lg, 0.75rem)",
+				xl: "var(--radius-xl, 1rem)",
+				"2xl": "1.25rem",
+				"3xl": "1.5rem",
+			},
 
-				// Навигация/бренд теперь на Tektur
+			// ===== Унифицированные тени =====
+			boxShadow: {
+				// Ваша система
+				card: "0 8px 24px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.25)",
+				raised: "0 12px 32px rgba(0,0,0,0.45)",
+
+				// Тактические тени из оригинала
+				"tactical-sm": "0 2px 8px hsl(0 0% 0% / 0.40), 0 1px 3px hsl(0 0% 0% / 0.20)",
+				tactical: "0 4px 16px hsl(0 0% 0% / 0.40), 0 1px 4px hsl(0 0% 0% / 0.20)",
+				"tactical-lg": "0 8px 32px hsl(0 0% 0% / 0.50), 0 2px 8px hsl(0 0% 0% / 0.25)",
+				"tactical-xl": "0 16px 64px hsl(0 0% 0% / 0.60), 0 4px 16px hsl(0 0% 0% / 0.30)",
+
+				// Свечения
+				"glow-crimson": "0 0 24px hsl(var(--crimson) / 0.35)",
+				"glow-olive": "0 0 18px hsl(var(--olive) / 0.30)",
+				"glow-steel": "0 0 16px hsl(var(--steel) / 0.25)",
+			},
+
+			// ===== Унифицированные шрифты =====
+			fontFamily: {
+				display: ["var(--font-display)", "system-ui", "sans-serif"],
+				sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+				mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+
+				// Дополнительные из оригинала
+				tactical: ["var(--font-display)", "var(--font-sans)", ...defaultTheme.fontFamily.sans],
 				nav: ["var(--font-tektur)", "var(--font-sans)", ...defaultTheme.fontFamily.sans],
 				brand: ["var(--font-tektur)", "var(--font-sans)", ...defaultTheme.fontFamily.sans],
 			},
@@ -122,36 +172,52 @@ const config: Config = {
 				"9xl": ["8rem", { lineHeight: "1" }],
 			},
 
+			// ===== Унифицированные переходы =====
+			transitionTimingFunction: {
+				"motion-out": "cubic-bezier(0.22,0.61,0.36,1)", // Ваша функция
+				"out-expo": "cubic-bezier(0.19, 1, 0.22, 1)",
+				"in-expo": "cubic-bezier(0.95, 0.05, 0.795, 0.035)",
+				tactical: "cubic-bezier(0.4, 0, 0.2, 1)",
+				"tactical-bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+			},
+			transitionDuration: {
+				fast: "180ms", // Ваша система
+				base: "240ms",
+				slow: "320ms",
+				// Дополнительные
+				300: "300ms",
+				500: "500ms",
+				700: "700ms",
+				1000: "1000ms",
+			},
+			transitionDelay: {
+				300: "300ms",
+				500: "500ms",
+				700: "700ms",
+				1000: "1000ms",
+			},
+
+			// ===== Z-Index =====
+			zIndex: {
+				hide: "-1",
+				base: "1", // Ваш base: "1"
+				elevated: "10",
+				fixed: "100",
+				overlay: "1000",
+				modal: "10000",
+			},
+
+			// ===== Дополнительные значения =====
 			spacing: { 18: "4.5rem", 88: "22rem", 128: "32rem" },
+			screens: { xs: "475px", ...defaultTheme.screens, "3xl": "1600px" },
+			opacity: { 2: "0.02", 3: "0.03", 12: "0.12", 15: "0.15", 35: "0.35", 85: "0.85" },
+			blur: { xs: "2px", "4xl": "72px" },
 
-			borderRadius: {
-				xs: "0.25rem",
-				sm: "0.375rem",
-				DEFAULT: "0.5rem",
-				md: "0.5rem",
-				lg: "0.75rem",
-				xl: "1rem",
-				"2xl": "1.25rem",
-				"3xl": "1.5rem",
-			},
-
-			// ===== Тактические тени/свечения =====
-			boxShadow: {
-				"tactical-sm": "0 2px 8px hsl(0 0% 0% / 0.40), 0 1px 3px hsl(0 0% 0% / 0.20)",
-				tactical: "0 4px 16px hsl(0 0% 0% / 0.40), 0 1px 4px hsl(0 0% 0% / 0.20)",
-				"tactical-lg": "0 8px 32px hsl(0 0% 0% / 0.50), 0 2px 8px hsl(0 0% 0% / 0.25)",
-				"tactical-xl": "0 16px 64px hsl(0 0% 0% / 0.60), 0 4px 16px hsl(0 0% 0% / 0.30)",
-				"glow-crimson": "0 0 24px hsl(var(--crimson) / 0.35)",
-				"glow-olive": "0 0 18px hsl(var(--olive) / 0.30)",
-				"glow-steel": "0 0 16px hsl(var(--steel) / 0.25)",
-			},
-
-			// ===== Градиенты и паттерны =====
+			// ===== Градиенты и фоны =====
 			backgroundImage: {
 				"gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
 				"gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
 
-				// Используем hsla() (без <alpha-value>)
 				"tactical-crimson": `linear-gradient(135deg, ${hsla("--crimson")}, ${hsla("--crimson-hover")})`,
 				"tactical-olive": `linear-gradient(135deg, ${hsla("--olive")}, ${hsla("--olive-hover")})`,
 				"tactical-mixed": `linear-gradient(135deg, ${hsla("--crimson")}, ${hsla("--olive")})`,
@@ -164,27 +230,6 @@ const config: Config = {
            radial-gradient(400px at 50% 50%, hsl(var(--steel-soft) / 0.06), transparent 80%)`,
 			},
 			backgroundSize: { grid: "32px 32px", dots: "24px 24px", texture: "100% 100%" },
-
-			// ===== Тайминги, уровни, экраны =====
-			transitionTimingFunction: {
-				"out-expo": "cubic-bezier(0.19, 1, 0.22, 1)",
-				"in-expo": "cubic-bezier(0.95, 0.05, 0.795, 0.035)",
-				tactical: "cubic-bezier(0.4, 0, 0.2, 1)",
-				"tactical-bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-			},
-			// чтобы delay-300/500/700/1000 были доступны как стандартные классы
-			transitionDelay: {
-				300: "300ms",
-				500: "500ms",
-				700: "700ms",
-				1000: "1000ms",
-			},
-			zIndex: { hide: "-1", base: "0", elevated: "10", fixed: "100", overlay: "1000", modal: "10000" },
-			screens: { xs: "475px", ...defaultTheme.screens, "3xl": "1600px" },
-
-			// ===== Доп. значения =====
-			opacity: { 2: "0.02", 3: "0.03", 12: "0.12", 15: "0.15", 35: "0.35", 85: "0.85" },
-			blur: { xs: "2px", "4xl": "72px" },
 
 			// ===== Анимации =====
 			keyframes: {

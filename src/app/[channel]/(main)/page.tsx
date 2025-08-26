@@ -1,8 +1,6 @@
 /* eslint-disable import/no-default-export */
 import { HeroBlock } from "@/ui/components/HeroBlock";
-import { UndergroundDesktop } from "@/ui/longread/UndergroundDesktop";
-import { ArenaDesktop } from "@/ui/longread/ArenaDesktop";
-import { RangeDesktop } from "@/ui/longread/RangeDesktop";
+import { Longread } from "@/ui/longread/Longread";
 import { SectionNav } from "@/ui/longread/SectionNav"; // ← навигация по секциям
 import { ChoosePath } from "@/ui/longread/ChoosePath";
 import { Subscribe } from "@/ui/longread/Subscribe";
@@ -27,9 +25,7 @@ export default function HomePage() {
 			</section>
 
 			{/* Лонгрид секции — у компонентов уже заданы id: underground / arena / range */}
-			<UndergroundDesktop />
-			<ArenaDesktop />
-			<RangeDesktop />
+			<Longread />
 			<BenefitsDesktop />
 			<SectionNav />
 			<ChoosePath />

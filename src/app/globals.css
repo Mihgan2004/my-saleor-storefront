@@ -68,6 +68,32 @@ body {
 	--steel: 210 14% 35%;
 	--emerald: 150 60% 41%;
 	--amber: 42 70% 47%;
+
+	/* Дополняем недостающие из проекта */
+	--olive: 90 18% 40%;
+	--olive-hover: 90 18% 46%;
+	--olive-soft: 90 18% 18%;
+
+	--steel-soft: 210 14% 25%;
+
+	/* Радиусы */
+	--radius-sm: 8px;
+	--radius-md: 16px;
+	--radius-lg: 24px;
+	--radius-xl: 32px;
+
+	/* Шкала отступов */
+	--space-xs: 4px;
+	--space-sm: 8px;
+	--space-md: 12px;
+	--space-lg: 16px;
+	--space-xl: 24px;
+	--space-2xl: 32px;
+
+	/* Переходы и z-index */
+	--transition-normal: 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+	--z-hide: -1;
+	--z-base: 1;
 }
 
 /* ========================================
@@ -584,4 +610,11 @@ body {
 		transition-duration: 0.01ms !important;
 		scroll-behavior: auto !important;
 	}
+}
+/* Утилиты, которых не хватало */
+.z-base {
+	z-index: var(--z-base);
+}
+.z-hide {
+	z-index: var(--z-hide);
 }

@@ -161,8 +161,7 @@ interface RootLayoutProps {
 	children: React.ReactNode;
 }
 
-const CHANNEL =
-  process.env.NEXT_PUBLIC_DEFAULT_CHANNEL || "default-channel";
+const CHANNEL = process.env.NEXT_PUBLIC_DEFAULT_CHANNEL || "default-channel";
 
 export default function RootLayout({ children }: RootLayoutProps) {
 	return (
@@ -186,8 +185,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
 			<body
 				className="body-surface antialiased"
 				style={{
-					backgroundColor: "hsl(225 15% 8%)",
-					color: "hsl(215 12% 96%)",
+					backgroundColor: "hsl(var(--obsidian))",
+					color: "hsl(var(--white))",
 				}}
 			>
 				{/* Skip link for a11y */}

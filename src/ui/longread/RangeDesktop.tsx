@@ -1,10 +1,11 @@
+/// FILE: src/ui/longread/RangeDesktop.tsx
 "use client";
 
-import { useRef } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { motion, useTransform, type MotionValue } from "framer-motion";
 import { ProductHotspotDesktop } from "./ProductHotspot.desktop";
 import { Frame } from "./Frame";
+import { useStickyProgress } from "./useStickyProgress";
 
 function Tile({
 	src,
@@ -16,14 +17,13 @@ function Tile({
 }: {
 	src: string;
 	alt: string;
-	y: MotionValue<string>;
+	y?: MotionValue<string>;
 	className: string;
 	pos?: string;
 	priority?: boolean;
 }) {
 	return (
 		<motion.figure className={className} style={{ y }}>
-			{/* Внутри Frame НЕ задаём скругления — их даёт Frame */}
 			<Image
 				src={src}
 				alt={alt}
@@ -39,21 +39,34 @@ function Tile({
 }
 
 export function RangeDesktop() {
-	const ref = useRef<HTMLDivElement>(null);
-	const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+	const { ref, progress } = useStickyProgress<HTMLDivElement>();
 
-	// Параллакс
-	const ySlow = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
-	const yMid = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
-	const yFast = useTransform(scrollYProgress, [0, 1], ["-14%", "14%"]);
+	// Проверка reduced motion (без условных вызовов хуков ниже)
+	const shouldReduceMotion =
+		typeof window !== "undefined" ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+
+	// Параллакс — хуки всегда вызываем
+	const ySlow = useTransform<number, string>(progress, [0, 1], ["-3%", "3%"]);
+	const yMid = useTransform<number, string>(progress, [0, 1], ["-5%", "5%"]);
+	const yFast = useTransform<number, string>(progress, [0, 1], ["-6%", "6%"]);
+
+	// Если reduce — просто не пробрасываем style в компоненты
+	const ySlowStyle = shouldReduceMotion ? undefined : ySlow;
+	const yMidStyle = shouldReduceMotion ? undefined : yMid;
+	const yFastStyle = shouldReduceMotion ? undefined : yFast;
 
 	// Текст
-	const titleX = useTransform(scrollYProgress, [0.06, 0.18], ["-16px", "0px"]);
-	const titleOpacity = useTransform(scrollYProgress, [0.06, 0.18], [0, 1]);
-	const copyOpacity = useTransform(scrollYProgress, [0.12, 0.28], [0, 1]);
+	const titleX = useTransform<number, string>(progress, [0.06, 0.18], ["-16px", "0px"]);
+	const titleOpacity = useTransform<number, number>(progress, [0.06, 0.18], [0, 1]);
+	const copyOpacity = useTransform<number, number>(progress, [0.12, 0.28], [0, 1]);
 
 	return (
-		<section id="range" ref={ref} className="relative h-[420vh] bg-black text-white">
+		<section
+			id="range"
+			ref={ref}
+			className="relative bg-black text-white"
+			style={{ height: "420vh", contain: "layout paint style" }}
+		>
 			<div className="sticky top-0 h-screen overflow-hidden">
 				<div className="absolute inset-x-0 top-0 z-10 h-[18vh] bg-gradient-to-b from-black to-transparent" />
 
@@ -64,7 +77,7 @@ export function RangeDesktop() {
 							<div className="self-center">
 								<motion.h2
 									className="mb-3 text-5xl font-black leading-tight"
-									style={{ x: titleX, opacity: titleOpacity }}
+									style={{ x: shouldReduceMotion ? undefined : titleX, opacity: titleOpacity }}
 								>
 									ГОТОВ К ПОЛЮ
 								</motion.h2>
@@ -79,13 +92,17 @@ export function RangeDesktop() {
 							</div>
 						</div>
 
-						{/* RIGHT: ровный кадр с мозаикой */}
-						<Frame className="col-span-7">
+						{/* RIGHT */}
+						<Frame
+							className="col-span-7"
+							overlayClassName="bg-lime-500/5"
+							progress={useTransform<number, number>(progress, [0.6, 1], [0, 1])}
+						>
 							<div className="grid h-full grid-cols-6 grid-rows-6 gap-4 bg-black/10">
 								<Tile
 									src="/images/longread/range-1.avif"
 									alt="Петлевая панель"
-									y={ySlow}
+									y={ySlowStyle}
 									className="relative col-span-3 row-span-6"
 									pos="55% 40%"
 									priority
@@ -93,35 +110,39 @@ export function RangeDesktop() {
 								<Tile
 									src="/images/longread/range-2.avif"
 									alt="Ламинированный шов"
-									y={yMid}
+									y={yMidStyle}
 									className="relative col-span-3 col-start-4 row-span-3 row-start-1"
 									pos="60% 50%"
 								/>
 								<Tile
 									src="/images/longread/range-3.avif"
 									alt="Усиленный бар-так"
-									y={yFast}
+									y={yFastStyle}
 									className="relative col-span-3 col-start-4 row-span-3 row-start-4"
 									pos="58% 58%"
 								/>
 							</div>
 
-							{/* Хот-споты строго к тому же кадру */}
+							{/* Хот-споты */}
 							<ProductHotspotDesktop
 								x={30}
 								y={40}
 								label="Панель под съёмный ярлык"
 								href="/products/loop-panel"
-								progress={scrollYProgress}
+								progress={progress}
 								appearAt={0.6}
+								chapter="range"
+								variant="loop-panel"
 							/>
 							<ProductHotspotDesktop
 								x={75}
 								y={28}
 								label="Влагозащитная молния"
 								href="/products/sealed-zip"
-								progress={scrollYProgress}
+								progress={progress}
 								appearAt={0.65}
+								chapter="range"
+								variant="sealed-zip"
 							/>
 							<ProductHotspotDesktop
 								x={74}
@@ -129,8 +150,10 @@ export function RangeDesktop() {
 								label="Бар-так усиленный"
 								href="/products/bartack-detail"
 								side="left"
-								progress={scrollYProgress}
+								progress={progress}
 								appearAt={0.7}
+								chapter="range"
+								variant="bartack"
 							/>
 						</Frame>
 					</div>

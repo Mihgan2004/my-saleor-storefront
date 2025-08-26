@@ -6,13 +6,16 @@ export const metadata = {
 	description: "Starter pack for building performant e-commerce experiences with Saleor.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
-	params: { channel },
+	params,
 }: {
 	children: ReactNode;
-	params: { channel: string };
+	// params — Promise в Next 14.2+/15
+	params: Promise<{ channel: string }>;
 }) {
+	const { channel } = await params; // ✅ главное — дождаться
+
 	return (
 		<>
 			<Header channel={channel} />
