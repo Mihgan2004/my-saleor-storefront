@@ -24,7 +24,7 @@ export const PaymentMethods = () => {
 	return (
 		<div className="gap-y-8">
 			{gatewaysWithDefinedComponent.map((gateway) => {
-				const Component = paymentMethodToComponent[gateway.id];
+				const Component = paymentMethodToComponent[gateway.id as keyof typeof paymentMethodToComponent];
 				return (
 					<Component
 						key={gateway.id}

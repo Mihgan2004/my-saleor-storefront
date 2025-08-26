@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { type ReactNode } from "react";
 import { useSummaryLineLineAttributesText, getSummaryLineProps } from "./utils";
 import { type CheckoutLineFragment, type OrderLineFragment } from "@/checkout/graphql";

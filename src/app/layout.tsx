@@ -160,7 +160,9 @@ const jsonLd = {
 interface RootLayoutProps {
 	children: React.ReactNode;
 }
-const CHANNEL = process.env.NEXT_PUBLIC_APP_CHANNEL || "default-channel";
+
+const CHANNEL =
+  process.env.NEXT_PUBLIC_DEFAULT_CHANNEL || "default-channel";
 
 export default function RootLayout({ children }: RootLayoutProps) {
 	return (

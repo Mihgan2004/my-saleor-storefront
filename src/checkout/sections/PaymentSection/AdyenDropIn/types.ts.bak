@@ -1,0 +1,62 @@
+import AdyenCheckout from "@adyen/adyen-web";
+
+/** ID шлюза Adyen для маппинга методов оплаты */
+export const adyenGatewayId = "mirumee.payments.adyen";
+
+/** Инстанс AdyenCheckout через публичный API (без deep-import путей) */
+export type AdyenCheckoutInstance = Awaited<ReturnType<typeof AdyenCheckout>>;
+
+/** Выводим тип drop-in элемента без внутренних путей пакета */
+const __inferDropin = (instance: AdyenCheckoutInstance) =>
+  instance.create("dropin").mount(document.createElement("div"));
+export type DropinElement = ReturnType<typeof __inferDropin>;
+
+export type AdyenCheckoutInstanceState = {
+  isValid?: boolean;
+  // CardElementData тип недоступен без deep import — используем универсальный shape
+  data: Record<string, unknown>;
+};
+
+export type AdyenCheckoutInstanceOnSubmit = (
+  state: AdyenCheckoutInstanceState,
+  component: DropinElement
+) => Promise<void> | void;
+
+export type AdyenCheckoutInstanceOnAdditionalDetails = (
+  state: AdyenCheckoutInstanceState,
+  component: DropinElement
+) => Promise<void> | void;
+
+export type AdyenAmount = {
+  currency: string;
+  value: number; // минимальные единицы (копейки/центы)
+};
+
+export type PaymentMethodsAPIResponse = Record<string, unknown>;
+
+/** Конфиг, который вы пробрасываете в Adyen SDK */
+export type AdyenGatewayInitializePayload = {
+  session: {
+    id: string;
+    sessionData: string;
+  };
+
+  /** ОБЯЗАТЕЛЬНО: SDK без clientKey не стартует */
+  clientKey: string;
+
+  /** 'test' | 'live' | кастомная строка — SDK допускает строку */
+  environment?: "test" | "live" | string;
+
+  /** локаль вида 'en-US' */
+  locale?: string;
+
+  /** Сумма платежа (минимальные единицы) */
+  amount?: AdyenAmount;
+
+  /** Опционально — ответ /paymentMethods */
+  paymentMethodsResponse?: PaymentMethodsAPIResponse;
+
+  /** Хуки из вашего слоя */
+  onSubmit?: AdyenCheckoutInstanceOnSubmit;
+  onAdditionalDetails?: AdyenCheckoutInstanceOnAdditionalDetails;
+};
