@@ -1,81 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useMotionValue, useTransform, type MotionValue } from "framer-motion";
-import clsx from "clsx";
-import { track } from "./analytics";
+import { motion, type MotionValue } from "framer-motion";
 
-interface ProductHotspotMobileProps {
-	/** Позиция в процентах относительно контейнера */
-	x: number;
-	y: number;
-
-	/** Подпись рядом с точкой */
+export type ProductHotspotMobileProps = {
+	x: number; // %
+	y: number; // %
 	label: string;
-
-	/** Ссылка */
 	href: string;
+	progress?: MotionValue<number>; // 0..1
+};
 
-	/** Сторона подписи */
-	side?: "left" | "right";
-
-	/** Необязательный прогресс появления и порог */
-	progress?: MotionValue<number>;
-	appearAt?: number;
-
-	/** Аналитика */
-	chapter?: string;
-	variant?: string;
-}
-
-export function ProductHotspotMobile({
-	x,
-	y,
-	label,
-	href,
-	side = "right",
-	progress,
-	appearAt = 0,
-	chapter = "unknown",
-	variant,
-}: ProductHotspotMobileProps) {
-	// Если прогресс не передали — показываем сразу
-	const fallback = useMotionValue(1);
-	const source = progress ?? fallback;
-
-	const opacity = useTransform<number, number>(source, [appearAt, Math.min(1, appearAt + 0.1)], [0, 1]);
-
-	const handleClick = () => track("shop_the_look_click_mobile", { chapter, variant, label, href });
-
+export function ProductHotspotMobile({ x, y, label, href, progress }: ProductHotspotMobileProps) {
 	return (
 		<motion.div
-			className="absolute z-50"
+			className="absolute select-none"
 			style={{
 				left: `${x}%`,
 				top: `${y}%`,
-				transform: "translate(-50%, -50%)",
-				opacity,
+				translateX: "-50%",
+				translateY: "-50%",
+				opacity: progress ?? 1,
+				scale: progress ?? 1,
 			}}
 		>
-			<Link
-				href={href}
-				onClick={handleClick}
-				className={clsx(
-					"relative flex items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
-					side === "right" ? "flex-row" : "flex-row-reverse",
-				)}
-				aria-label={`Go to ${label}`}
-			>
-				{/* Серебристая точка (мобильная) */}
-				<span className="relative grid h-6 w-6 place-items-center rounded-full bg-white/80 shadow-md ring-2 ring-black/30">
-					<svg width="10" height="10" viewBox="0 0 12 12" className="text-black" aria-hidden>
-						<path d="M6 1.5v9M1.5 6h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+			<Link href={href} className="group relative flex items-center gap-2" aria-label={label}>
+				<motion.span
+					className="relative grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-lg ring-2 ring-black/30"
+					animate={{ scale: [1, 1.06, 1], y: [0, -1, 0] }}
+					transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+				>
+					<svg width="12" height="12" viewBox="0 0 12 12" className="text-black" aria-hidden>
+						<path d="M6 1.5v9M1.5 6h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
 					</svg>
-					<span className="absolute -inset-1 rounded-full bg-white/50 blur-sm" />
-				</span>
-
-				{/* Подпись рядом с точкой */}
-				<span className="rounded-full bg-white/95 px-2 py-1 text-xs font-medium text-black shadow ring-1 ring-black/10">
+					<span className="pointer-events-none absolute -inset-1 rounded-full bg-white/70 blur-[10px]" />
+				</motion.span>
+				<span className="rounded-full bg-white/85 px-3 py-1 text-[13px] font-semibold text-black shadow-lg ring-1 ring-black/10">
 					{label}
 				</span>
 			</Link>

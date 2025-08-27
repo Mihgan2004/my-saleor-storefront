@@ -1,5 +1,6 @@
 "use client";
 
+import { SectionNav } from "./SectionNav"; // как у тебя было
 import { UndergroundDesktop } from "./UndergroundDesktop";
 import { ArenaDesktop } from "./ArenaDesktop";
 import { RangeDesktop } from "./RangeDesktop";
@@ -7,11 +8,18 @@ import { RangeDesktop } from "./RangeDesktop";
 import { UndergroundMobile } from "./UndergroundMobile";
 import { ArenaMobile } from "./ArenaMobile";
 import { RangeMobile } from "./RangeMobile";
-
-import { SectionNav } from "./SectionNav";
+import { BenefitsMobile } from "./BenefitsMobile";
 import { SectionNavMobile } from "./SectionNavMobile";
 
 export function Longread() {
+	// Секции мобильного лонгрида для навигации
+	const mobileNavItems = [
+		{ id: "underground", label: "Underground" },
+		{ id: "arena", label: "Arena" },
+		{ id: "range", label: "Tactical" },
+		{ id: "why", label: "Почему" }, // если используешь BenefitsMobile
+	];
+
 	return (
 		<>
 			{/* DESKTOP (≥ lg) */}
@@ -23,11 +31,14 @@ export function Longread() {
 			</div>
 
 			{/* MOBILE (< lg) */}
-			<div className="snap-y snap-mandatory lg:hidden">
+			<div className="lg:hidden">
 				<UndergroundMobile />
 				<ArenaMobile />
 				<RangeMobile />
-				<SectionNavMobile />
+				<BenefitsMobile />
+
+				{/* ⬇️ здесь была ошибка — теперь передаём items */}
+				<SectionNavMobile items={mobileNavItems} />
 			</div>
 		</>
 	);
