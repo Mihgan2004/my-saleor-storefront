@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion"
 import { usePathname } from "next/navigation";
 import { Command, Heart, Menu, Search, ShoppingBag, User as UserIcon, X } from "lucide-react";
 import { Logo } from "@/ui/components/Logo";
+
 export type HeaderProps = { channel: string };
 
 type CartItem = { lineId?: string; variantId?: string; qty?: number; price?: number };
@@ -196,7 +197,7 @@ const MobileMenu: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
 /* ========== HEADER (glass plaque) ========== */
 const Header: React.FC<HeaderProps> = ({ channel }) => {
 	const pathname = usePathname();
-	const [isScrolled, setIsScrolled] = useState(false);
+	// удалил isScrolled, так как он нигде не используется и провоцировал предупреждение
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isCartOpen, setIsCartOpen] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -205,11 +206,7 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 	const headerHeight = useTransform(scrollY, [0, 24], [84, 66]);
 	const yFloat = useTransform(scrollY, [0, 200], [-6, 0]);
 
-	useEffect(() => {
-		const unsub = scrollY.onChange((y) => setIsScrolled(y > 24));
-		return unsub;
-	}, [scrollY]);
-
+	// оставляем только хэндлер хоткеев
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
 			const t = e.target as HTMLElement | null;
@@ -241,19 +238,13 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 
 	return (
 		<>
-			{/* Центрирование плашки по вьюпорту + safe-area, чтобы не съезжало на мобиле */}
+			{/* Центрирование плашки по вьюпорту + safe-area */}
 			<motion.header
-				className={`pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 transition-all duration-200 ${
-					isScrolled ? "bg-transparent backdrop-blur-sm" : "bg-transparent"
-				}`}
-				style={{
-					top: "max(env(safe-area-inset-top), 8px)",
-					height: headerHeight,
-				}}
+				className="pointer-events-none fixed left-1/2 z-40 -translate-x-1/2"
+				style={{ top: "max(env(safe-area-inset-top), 8px)", height: headerHeight }}
 			>
 				<motion.div
-					className="header-plaque plaque-float group pointer-events-auto flex h-12 items-center justify-between gap-2 rounded-[28px] px-3 md:h-16 md:px-5"
-					// ширина не больше экрана: 100vw - 16px, но не шире 1180px
+					className="group pointer-events-auto flex h-12 items-center justify-between gap-2 rounded-[28px] px-3 md:h-16 md:px-5"
 					style={{ width: "min(calc(100vw - 16px), 1180px)", y: yFloat }}
 				>
 					{/* Left: logo + nav */}
@@ -399,12 +390,9 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 				.header-plaque:hover {
 					transform: translateY(-2px);
 				}
-
-				/* На случай, если где-то в проекте ещё встречается font-nav — подстраховка */
 				.font-nav {
 					font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
 				}
-
 				.tactical-scrollbar::-webkit-scrollbar {
 					width: 6px;
 				}
@@ -424,4 +412,4 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 	);
 };
 
-export default Header; // <- ОБЯЗАТЕЛЬНО
+export default Header;

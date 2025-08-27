@@ -1,206 +1,135 @@
+// src/ui/longread/BenefitsMobile.tsx
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { motion, useInView, useMotionValue, useTransform, animate, type MotionValue } from "framer-motion";
 
-type Item = { side: "left" | "right"; title: string; text: string; icon: string };
+type Item = { title: string; desc: string; side: "left" | "right" };
+
+const items: Omit<Item, "side">[] = [
+	{ title: "Материалы PRO", desc: "Износостойкие ткани и фурнитура. Держат нагрузку и погоду." },
+	{ title: "Инженерная посадка", desc: "Свобода шага, вентиляция, карманы по делу — без лишнего шума." },
+	{ title: "Сделано здесь", desc: "Локальное производство и контроль качества на каждом шаге." },
+	{ title: "Быстрая доставка", desc: "По РФ/СНГ. Полное отслеживание от склада до двери." },
+	{ title: "14 дней на обмен", desc: "Если не село — обменяем быстро и без драмы." },
+	{ title: "Саппорт 24/7", desc: "Отвечаем быстро и по делу в любом канале." },
+];
+
+function NodeDot({ progress, t }: { progress: MotionValue<number>; t: number }) {
+	const opacity = useTransform(progress, [t - 0.02, t], [0.4, 1]);
+	return (
+		<motion.span
+			className="absolute left-1/2 z-20 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+			style={{ top: `${t * 100}%`, opacity }}
+			aria-hidden
+		/>
+	);
+}
+
+function Feature({
+	item,
+	threshold,
+	progress,
+}: {
+	item: Item;
+	threshold: number;
+	progress: MotionValue<number>;
+}) {
+	const appearStart = Math.max(0, threshold - 0.1);
+	const opacity = useTransform(progress, [appearStart, threshold], [0, 1]);
+	const x = useTransform(progress, [appearStart, threshold], item.side === "left" ? [-24, 0] : [24, 0]);
+
+	const baseSideCls =
+		item.side === "left"
+			? "right-[calc(50%+48px)] items-end text-right"
+			: "left-[calc(50%+48px)] items-start text-left";
+
+	return (
+		<motion.div
+			className={`absolute z-20 flex w-[34ch] gap-2 ${baseSideCls}`}
+			style={{ top: `${threshold * 100}%`, translateY: "-50%", opacity, x }}
+		>
+			<div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-sm">
+				<h3 className="text-lg font-semibold text-white">{item.title}</h3>
+				<p className="mt-1 text-sm text-white/70">{item.desc}</p>
+			</div>
+		</motion.div>
+	);
+}
 
 export function BenefitsMobile() {
-	const ref = useRef<HTMLDivElement | null>(null);
-	const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+	const ref = useRef<HTMLDivElement>(null);
+	const inView = useInView(ref, { amount: 0.35, once: true });
 
-	// Enhanced scroll-based animations
-	const progressBarScale = useTransform(scrollYProgress, [0.1, 0.9], [0, 1]);
-	const headerY = useTransform(scrollYProgress, [0, 0.3], [50, 0]);
-	const headerOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
+	const FUSE_DURATION = 3.6;
+	const progress = useMotionValue(0);
 
-	const items: Item[] = [
-		{
-			side: "left",
-			icon: "🏭",
-			title: "Материалы PRO",
-			text: "Ткани и фурнитура. Держат нагрузку и погоду.",
-		},
-		{
-			side: "right",
-			icon: "⚙️",
-			title: "Инженерная посадка",
-			text: "Свобода шага, вентиляция и удобство без лишнего.",
-		},
-		{
-			side: "left",
-			icon: "🇷🇺",
-			title: "Сделано здесь",
-			text: "Производство и контроль на каждом шаге.",
-		},
-		{
-			side: "right",
-			icon: "🚀",
-			title: "Быстрая логистика",
-			text: "По РФ/СНГ: со склада до двери.",
-		},
-		{
-			side: "left",
-			icon: "🔄",
-			title: "Честные обмены",
-			text: "Меняем быстро и без драмы.",
-		},
-		{
-			side: "right",
-			icon: "💬",
-			title: "Саппорт 24/7",
-			text: "Отвечаем быстро. По делу.",
-		},
-	];
+	useEffect(() => {
+		if (inView) {
+			const controls = animate(progress, 1, {
+				duration: FUSE_DURATION,
+				ease: [0.22, 1, 0.36, 1],
+			});
+			return () => controls.stop();
+		}
+	}, [inView, progress]);
+
+	const itemsWithSide: Item[] = useMemo(
+		() => items.map((it, i) => ({ ...it, side: i % 2 === 0 ? "left" : "right" })),
+		[],
+	);
+	const thresholds = useMemo(() => {
+		const n = itemsWithSide.length;
+		return itemsWithSide.map((_, i) => (i + 1) / (n + 1));
+	}, [itemsWithSide]);
+
+	const fillH = useTransform(progress, [0, 1], ["0%", "100%"]);
+	const sparkTop = useTransform(progress, [0, 1], ["0%", "100%"]);
 
 	return (
 		<section
-			id="why"
-			className="overflow-hidden bg-black py-20 text-white sm:py-24"
-			aria-label="Почему GRAYCARDINAL"
+			id="benefits"
+			className="relative ml-[calc(50%-50vw)] mr-[calc(50%-50vw)] w-[100vw] bg-black text-white"
 		>
-			<div className="mx-auto max-w-screen-sm px-5">
-				{/* Enhanced header with scroll animations */}
-				<motion.div className="mb-16 text-center" style={{ y: headerY, opacity: headerOpacity }}>
-					<motion.h2
-						className="mb-4 text-center text-[32px] font-black leading-tight tracking-tight sm:text-[40px]"
-						initial={{ opacity: 0, scale: 0.8 }}
-						whileInView={{ opacity: 1, scale: 1 }}
-						transition={{ duration: 0.8, ease: "backOut" }}
-						viewport={{ once: true }}
-					>
-						ПОЧЕМУ
-						<br />
-						<motion.span
-							className="bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent"
-							animate={{ backgroundPosition: ["0%", "100%", "0%"] }}
-							transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-						>
-							GRAYCARDINAL
-						</motion.span>
-					</motion.h2>
-
-					<motion.p
-						className="mx-auto max-w-prose text-center text-base leading-relaxed text-white/85 sm:text-lg"
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8, delay: 0.2 }}
-						viewport={{ once: true }}
-					>
+			<div className="absolute inset-x-0 -top-1 h-24 bg-gradient-to-b from-black to-transparent" />
+			<div className="mx-auto max-w-6xl px-4 py-28">
+				<div className="mb-12 text-center">
+					<h2 className="text-3xl font-black leading-tight">ПОЧЕМУ GRAYCARDINAL</h2>
+					<p className="mx-auto mt-2 max-w-2xl text-white/70">
 						Мы делаем вещи, которые работают в городе: прочные, продуманные, честные.
-					</motion.p>
-				</motion.div>
+					</p>
+				</div>
 
-				<div ref={ref} className="relative">
-					{/* Enhanced progress line with glow effect */}
-					<div className="absolute left-1/2 top-0 z-10 -translate-x-1/2">
-						<div className="h-full w-[2px] rounded-full bg-white/10" />
-						<motion.div
-							className="absolute left-0 top-0 w-[2px] origin-top rounded-full bg-gradient-to-b from-white via-gray-300 to-white shadow-lg shadow-white/20"
-							style={{ scaleY: progressBarScale }}
-						/>
+				<div ref={ref} className="relative mx-auto h-[72vh] max-h-[900px] min-h-[520px]">
+					<div className="absolute left-1/2 top-0 z-10 h-full w-[2px] -translate-x-1/2 bg-white/10" />
 
-						{/* Animated dot at the progress end */}
-						<motion.div
-							className="absolute left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-white shadow-lg shadow-white/30"
-							style={{
-								top: `${scrollYProgress.get() * 100}%`,
-								scale: progressBarScale,
-							}}
-							animate={{
-								boxShadow: [
-									"0 0 10px rgba(255,255,255,0.3)",
-									"0 0 20px rgba(255,255,255,0.6)",
-									"0 0 10px rgba(255,255,255,0.3)",
-								],
-							}}
-							transition={{ duration: 2, repeat: Infinity }}
-						/>
-					</div>
+					<motion.div
+						className="absolute left-1/2 top-0 z-20 w-[2px] -translate-x-1/2 bg-white"
+						style={{ height: fillH }}
+					/>
 
-					<ul className="relative z-20 space-y-10 sm:space-y-12">
-						{items.map((it, idx) => (
-							<motion.li
-								key={idx}
-								initial={{
-									opacity: 0,
-									x: it.side === "left" ? -50 : 50,
-									scale: 0.9,
-								}}
-								whileInView={{
-									opacity: 1,
-									x: 0,
-									scale: 1,
-								}}
-								viewport={{ once: true, amount: 0.3 }}
-								transition={{
-									duration: 0.7,
-									delay: 0.1 * idx,
-									ease: "backOut",
-								}}
-								className={`flex ${it.side === "left" ? "justify-start" : "justify-end"}`}
-							>
-								<motion.div
-									className="group relative max-w-[85%] sm:max-w-[80%]"
-									whileHover={{ scale: 1.02, y: -2 }}
-									transition={{ type: "spring", stiffness: 300, damping: 20 }}
-								>
-									{/* Enhanced card with glassmorphism */}
-									<motion.div
-										className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-5 py-4 shadow-xl backdrop-blur-md sm:px-6 sm:py-5"
-										whileHover={{
-											backgroundColor: "rgba(255,255,255,0.08)",
-											borderColor: "rgba(255,255,255,0.2)",
-										}}
-										transition={{ duration: 0.3 }}
-									>
-										{/* Animated background gradient */}
-										<motion.div
-											className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100"
-											transition={{ duration: 0.5 }}
-										/>
+					<motion.div
+						aria-hidden
+						className="absolute left-1/2 z-30 -translate-x-1/2"
+						style={{ top: sparkTop }}
+					>
+						<div className="relative h-4 w-4 -translate-y-1/2">
+							<span className="absolute inset-0 rounded-full bg-white" />
+							<span className="absolute -inset-2 rounded-full bg-white/60 blur-sm" />
+							<span className="absolute -inset-6 rounded-full bg-cyan-400/20 blur-lg" />
+						</div>
+					</motion.div>
 
-										{/* Content */}
-										<div className="relative z-10">
-											<motion.div
-												className="mb-2 flex items-center gap-4"
-												initial={{ opacity: 0 }}
-												whileInView={{ opacity: 1 }}
-												transition={{ duration: 0.6, delay: 0.2 }}
-											>
-												<motion.span
-													className="text-2xl sm:text-3xl"
-													whileHover={{ scale: 1.2, rotate: 10 }}
-													transition={{ type: "spring", stiffness: 400, damping: 15 }}
-												>
-													{it.icon}
-												</motion.span>
-												<motion.h3
-													className="text-[18px] font-bold tracking-tight sm:text-[20px]"
-													initial={{ opacity: 0, x: -10 }}
-													whileInView={{ opacity: 1, x: 0 }}
-													transition={{ duration: 0.6, delay: 0.3 }}
-												>
-													{it.title}
-												</motion.h3>
-											</motion.div>
+					{thresholds.map((t, i) => (
+						<NodeDot key={`dot-${i}`} progress={progress} t={t} />
+					))}
 
-											<motion.p
-												className="text-[15px] leading-relaxed text-white/85 sm:text-[16px]"
-												initial={{ opacity: 0, y: 10 }}
-												whileInView={{ opacity: 1, y: 0 }}
-												transition={{ duration: 0.6, delay: 0.4 }}
-											>
-												{it.text}
-											</motion.p>
-										</div>
-									</motion.div>
-								</motion.div>
-							</motion.li>
-						))}
-					</ul>
+					{itemsWithSide.map((it, i) => (
+						<Feature key={it.title} item={it} threshold={thresholds[i]} progress={progress} />
+					))}
 				</div>
 			</div>
+			<div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent" />
 		</section>
 	);
 }

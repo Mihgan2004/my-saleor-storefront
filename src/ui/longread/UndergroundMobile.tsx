@@ -1,56 +1,177 @@
+// src/ui/longread/UndergroundMobile.tsx
 "use client";
-import { motion } from "framer-motion";
-import { StickyChapterMobile } from "./StickyChapterMobile";
+
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { motion, useTransform } from "framer-motion";
+import { ProductHotspotMobile } from "./ProductHotspot.mobile";
+import { Frame } from "./Frame";
+import { useStickyProgress } from "./useStickyProgress";
+
+const IMG_W = 1920;
+const IMG_H = 1080;
+
+interface Hotspot {
+	ix: number;
+	iy: number;
+	label: string;
+	href: string;
+	side?: "left" | "right";
+}
+
+const HOTSPOTS_FRAME_A: Hotspot[] = [
+	// ... assume same as desktop, fill if needed ...
+];
+const HOTSPOTS_FRAME_B: Hotspot[] = [
+	// ... assume same as desktop ...
+];
+
+function useViewportSize() {
+	const [size, setSize] = useState({ w: 0, h: 0 });
+	useEffect(() => {
+		const fn = () => setSize({ w: window.innerWidth, h: window.innerHeight });
+		fn();
+		window.addEventListener("resize", fn, { passive: true });
+		return () => window.removeEventListener("resize", fn);
+	}, []);
+	return size;
+}
+
+function mapCoverToViewport(ix: number, iy: number, W: number, H: number) {
+	const scale = Math.max(W / IMG_W, H / IMG_H);
+	const dispW = IMG_W * scale;
+	const dispH = IMG_H * scale;
+	const dx = (W - dispW) / 2;
+	const dy = (H - dispH) / 2;
+	const xPx = dx + ix * dispW;
+	const yPx = dy + iy * dispH;
+	return { x: (xPx / W) * 100, y: (yPx / H) * 100 };
+}
 
 export function UndergroundMobile() {
+	const { w: W, h: H } = useViewportSize();
+	const { ref, progress } = useStickyProgress<HTMLDivElement>();
+
+	const shouldReduceMotion =
+		typeof window !== "undefined" ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+
+	const fadeA = useTransform<number, number>(progress, [0, 0.5, 1], [1, 0, 0]);
+	const fadeB = useTransform<number, number>(progress, [0, 0.5, 1], [0, 1, 0]);
+	const bgY = useTransform<number, string>(progress, [0, 1], ["4%", "-2%"]);
+	const bgScale = useTransform<number, number>(progress, [0, 1], [1.03, 1]);
+	const titleY = useTransform<number, string>(progress, [0.08, 0.22], ["0px", "-6%"]);
+	const titleOp = useTransform<number, number>(progress, [0.08, 0.22], [0, 1]);
+	const copyOp = useTransform<number, number>(progress, [0.14, 0.3], [0, 1]);
+
+	const hotspotsA = useMemo(
+		() =>
+			!W || !H
+				? []
+				: HOTSPOTS_FRAME_A.map(({ ix, iy, ...rest }) => ({ ...mapCoverToViewport(ix, iy, W, H), ...rest })),
+		[W, H],
+	);
+	const hotspotsB = useMemo(
+		() =>
+			!W || !H
+				? []
+				: HOTSPOTS_FRAME_B.map(({ ix, iy, ...rest }) => ({ ...mapCoverToViewport(ix, iy, W, H), ...rest })),
+		[W, H],
+	);
+
 	return (
-		<motion.div
-			initial={{ opacity: 0 }}
-			whileInView={{ opacity: 1 }}
-			transition={{ duration: 1.2, ease: "easeOut" }}
-			viewport={{ once: true, amount: 0.2 }}
+		<section
+			id="underground"
+			ref={ref}
+			className="relative ml-[calc(50%-50vw)] mr-[calc(50%-50vw)] w-[100vw] bg-black text-white"
+			style={{ height: "420vh", contain: "layout paint style" }}
 		>
-			<StickyChapterMobile
-				id="underground"
-				kicker="Underground • Code"
-				title={
-					<motion.span
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8, delay: 0.2 }}
+			<div className="sticky top-0 h-[100svh] overflow-hidden">
+				<div className="pointer-events-none absolute inset-x-0 top-0 z-30 h-[18vh] bg-gradient-to-b from-black to-transparent" />
+				<div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[30vh] bg-gradient-to-t from-black/75 to-transparent" />
+
+				<div className="absolute inset-0 z-20">
+					<motion.div
+						className="absolute inset-0 will-change-transform"
+						style={{
+							opacity: fadeA,
+							y: shouldReduceMotion ? 0 : bgY,
+							scale: shouldReduceMotion ? 1 : bgScale,
+						}}
 					>
-						НЕ ДЛЯ ВСЕХ
-					</motion.span>
-				}
-				description={
-					<motion.span
-						className="block max-w-sm text-base leading-relaxed text-white/90 sm:text-lg"
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8, delay: 0.3 }}
+						<Image
+							src="/images/longread/underground-1.avif"
+							alt="Silhouette by neon portal"
+							fill
+							priority
+							sizes="100vw"
+							className="object-cover"
+						/>
+						<div className="absolute inset-0">
+							{hotspotsA.map((h, i) => (
+								<ProductHotspotMobile
+									key={`frame-a-${i}`}
+									x={h.x}
+									y={h.y}
+									label={h.label}
+									href={h.href}
+									side={h.side}
+									progress={fadeA}
+									appearAt={0.2}
+									chapter="underground"
+									variant="frame-a"
+								/>
+							))}
+						</div>
+					</motion.div>
+
+					<motion.div
+						className="absolute inset-0 will-change-transform"
+						style={{
+							opacity: fadeB,
+							y: shouldReduceMotion ? 0 : bgY,
+							scale: shouldReduceMotion ? 1 : bgScale,
+						}}
 					>
-						Шум асфальта, тишина правил. Мы выбираем своё.
-					</motion.span>
-				}
-				bullets={["чистые формы без шума", "защита от погоды", "база вне сезонов"]}
-				frames={[
-					{ src: "/images/longread/underground-1.avif", alt: "Силуэт в неоне" },
-					{ src: "/images/longread/underground-2.avif", alt: "Тёмный коридор" },
-					{ src: "/images/longread/underground-3.avif", alt: "Город ночью" },
-				]}
-				hotspots={[
-					{ forFrame: 1, x: 46, y: 36, label: "Капюшон / ворот", href: "/products/hood", appearAt: 0.55 },
-					{ forFrame: 1, x: 60, y: 62, label: "Грудь / логотип", href: "/products/logo", appearAt: 0.7 },
-					{ forFrame: 2, x: 35, y: 45, label: "Текстуры ткани", href: "/products/texture", appearAt: 0.6 },
-					{ forFrame: 3, x: 70, y: 40, label: "Городской стиль", href: "/products/urban", appearAt: 0.65 },
-				]}
-				cta={{
-					primary: { label: "Смотреть дроп", href: "/collections/underground" },
-					secondary: { label: "История бренда", href: "/brand" },
-				}}
-				heightVh={380}
-				withBottomGradient={true}
-			/>
-		</motion.div>
+						<Image
+							src="/images/longread/underground-2.avif"
+							alt="Neon clothing details"
+							fill
+							sizes="100vw"
+							className="object-cover"
+						/>
+						<div className="absolute inset-0">
+							{hotspotsB.map((h, i) => (
+								<ProductHotspotMobile
+									key={`frame-b-${i}`}
+									x={h.x}
+									y={h.y}
+									label={h.label}
+									href={h.href}
+									side={h.side}
+									progress={fadeB}
+									appearAt={0.3}
+									chapter="underground"
+									variant="frame-b"
+								/>
+							))}
+						</div>
+					</motion.div>
+				</div>
+
+				<div className="pointer-events-none relative z-40 mx-auto grid h-full grid-cols-1 gap-6 px-4">
+					<motion.div
+						className="pointer-events-auto self-end pb-20"
+						style={{ y: shouldReduceMotion ? 0 : titleY, opacity: titleOp }}
+					>
+						<h2 className="mb-2 text-4xl font-black leading-tight">NOT FOR EVERYONE</h2>
+						<motion.p className="max-w-xl text-white/85" style={{ opacity: copyOp }}>
+							Noise of asphalt, silence of rules. We choose our own path.
+						</motion.p>
+					</motion.div>
+
+					<Frame className="pointer-events-none" overlayClassName="bg-cyan-500/5" progress={fadeB} />
+				</div>
+			</div>
+		</section>
 	);
 }

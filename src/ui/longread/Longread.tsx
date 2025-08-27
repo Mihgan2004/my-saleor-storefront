@@ -1,6 +1,6 @@
 "use client";
 
-import { SectionNav } from "./SectionNav"; // как у тебя было
+import { SectionNav } from "./SectionNav"; // desktop
 import { UndergroundDesktop } from "./UndergroundDesktop";
 import { ArenaDesktop } from "./ArenaDesktop";
 import { RangeDesktop } from "./RangeDesktop";
@@ -37,7 +37,7 @@ export function Longread() {
 				<RangeMobile />
 				<BenefitsMobile />
 
-				{/* ⬇️ здесь была ошибка — теперь передаём items */}
+				{/* Передаём items, чтобы не было "assigned but never used" */}
 				<SectionNavMobile items={mobileNavItems} />
 			</div>
 		</>
