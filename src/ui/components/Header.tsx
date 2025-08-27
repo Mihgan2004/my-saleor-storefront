@@ -241,102 +241,105 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 
 	return (
 		<>
+			{/* Центрирование плашки по вьюпорту + safe-area, чтобы не съезжало на мобиле */}
 			<motion.header
-				className={`fixed left-0 right-0 top-2 z-40 transition-all duration-200 md:top-4 ${
+				className={`pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 transition-all duration-200 ${
 					isScrolled ? "bg-transparent backdrop-blur-sm" : "bg-transparent"
 				}`}
-				style={{ height: headerHeight }}
+				style={{
+					top: "max(env(safe-area-inset-top), 8px)",
+					height: headerHeight,
+				}}
 			>
-				<div className="mx-auto flex h-full w-full max-w-[96rem] items-center justify-center px-2 md:px-4">
-					<motion.div
-						className="header-plaque plaque-float group flex h-12 items-center justify-between gap-2 rounded-[28px] px-3 md:h-16 md:px-5"
-						style={{ width: "clamp(340px, 90vw, 1180px)", y: yFloat }}
-					>
-						{/* Left: logo + nav */}
-						<div className="flex min-w-0 items-center gap-4 md:gap-6">
-							<button
-								className="-ml-1 flex items-center md:-ml-2"
-								aria-label="На главную"
-								onClick={(e) => e.preventDefault()}
-							>
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc/25 bg-gradient-to-b from-graphite to-charcoal shadow-inner transition group-hover:ring-2 group-hover:ring-olive/25">
-									<Logo size={22} showWordmark={false} />
-								</div>
-							</button>
+				<motion.div
+					className="header-plaque plaque-float group pointer-events-auto flex h-12 items-center justify-between gap-2 rounded-[28px] px-3 md:h-16 md:px-5"
+					// ширина не больше экрана: 100vw - 16px, но не шире 1180px
+					style={{ width: "min(calc(100vw - 16px), 1180px)", y: yFloat }}
+				>
+					{/* Left: logo + nav */}
+					<div className="flex min-w-0 items-center gap-4 md:gap-6">
+						<button
+							className="-ml-1 flex items-center md:-ml-2"
+							aria-label="На главную"
+							onClick={(e) => e.preventDefault()}
+						>
+							<div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc/25 bg-gradient-to-b from-graphite to-charcoal shadow-inner transition group-hover:ring-2 group-hover:ring-olive/25">
+								<Logo size={22} showWordmark={false} />
+							</div>
+						</button>
 
-							<nav className="hidden items-center gap-3 md:flex">
-								{nav.map((item) => {
-									const active = pathname === item.href;
-									return (
-										<a
-											key={item.href}
-											href={item.href}
-											aria-current={active ? "page" : undefined}
-											className={`relative font-tactical text-[14px] uppercase tracking-[0.08em] md:text-[15px] ${
-												active ? "text-white" : "text-silver hover:text-white"
-											} transition-colors`}
-											onClick={(e) => e.preventDefault()}
-										>
-											<span className="relative">
-												{item.label}
-												{active && (
-													<span className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-olive/40 via-olive to-olive/40" />
-												)}
-											</span>
-										</a>
-									);
-								})}
-							</nav>
-						</div>
+						<nav className="hidden items-center gap-3 md:flex">
+							{nav.map((item) => {
+								const active = pathname === item.href;
+								return (
+									<a
+										key={item.href}
+										href={item.href}
+										aria-current={active ? "page" : undefined}
+										className={`relative font-tactical text-[14px] uppercase tracking-[0.08em] md:text-[15px] ${
+											active ? "text-white" : "text-silver hover:text-white"
+										} transition-colors`}
+										onClick={(e) => e.preventDefault()}
+									>
+										<span className="relative">
+											{item.label}
+											{active && (
+												<span className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-olive/40 via-olive to-olive/40" />
+											)}
+										</span>
+									</a>
+								);
+							})}
+						</nav>
+					</div>
 
-						{/* Right: search + icons */}
-						<div className="flex items-center gap-1.5 md:gap-2.5">
-							<button
-								onClick={() => setIsSearchOpen(true)}
-								className="hidden h-9 items-center gap-2 rounded-full border border-zinc/20 bg-zinc/10 px-3 text-silver transition hover:border-olive/30 hover:bg-zinc/15 focus:outline-none focus:ring-2 focus:ring-olive/40 md:flex"
-								aria-label="Открыть поиск"
-							>
-								<Search className="h-4 w-4" />
-								<span className="text-[13px]">Поиск</span>
-								<span className="font-mono text-[11px] text-silver/60">/</span>
-							</button>
+					{/* Right: search + icons */}
+					<div className="flex items-center gap-1.5 md:gap-2.5">
+						<button
+							onClick={() => setIsSearchOpen(true)}
+							className="hidden h-9 items-center gap-2 rounded-full border border-zinc/20 bg-zinc/10 px-3 text-silver transition hover:border-olive/30 hover:bg-zinc/15 focus:outline-none focus:ring-2 focus:ring-olive/40 md:flex"
+							aria-label="Открыть поиск"
+						>
+							<Search className="h-4 w-4" />
+							<span className="text-[13px]">Поиск</span>
+							<span className="font-mono text-[11px] text-silver/60">/</span>
+						</button>
 
-							<button
-								className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
-								aria-label="Избранное"
-							>
-								<Heart className="h-[18px] w-[18px]" />
-							</button>
-							<button
-								className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
-								aria-label="Профиль"
-							>
-								<UserIcon className="h-[18px] w-[18px]" />
-							</button>
+						<button
+							className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
+							aria-label="Избранное"
+						>
+							<Heart className="h-[18px] w-[18px]" />
+						</button>
+						<button
+							className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
+							aria-label="Профиль"
+						>
+							<UserIcon className="h-[18px] w-[18px]" />
+						</button>
 
-							<button
-								onClick={() => setIsCartOpen(true)}
-								className="relative rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
-								aria-label="Корзина"
-							>
-								<ShoppingBag className="h-[18px] w-[18px]" />
-								{mockCart.count > 0 && (
-									<span className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-olive text-[10px] font-bold text-white shadow-[0_0_20px_hsl(var(--olive)_/_0.35)]">
-										{mockCart.count > 99 ? "99+" : mockCart.count}
-									</span>
-								)}
-							</button>
+						<button
+							onClick={() => setIsCartOpen(true)}
+							className="relative rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
+							aria-label="Корзина"
+						>
+							<ShoppingBag className="h-[18px] w-[18px]" />
+							{mockCart.count > 0 && (
+								<span className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-olive text-[10px] font-bold text-white shadow-[0_0_20px_hsl(var(--olive)_/_0.35)]">
+									{mockCart.count > 99 ? "99+" : mockCart.count}
+								</span>
+							)}
+						</button>
 
-							<button
-								onClick={() => setIsMobileMenuOpen(true)}
-								className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 md:hidden"
-								aria-label="Открыть меню"
-							>
-								<Menu className="h-6 w-6" />
-							</button>
-						</div>
-					</motion.div>
-				</div>
+						<button
+							onClick={() => setIsMobileMenuOpen(true)}
+							className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 md:hidden"
+							aria-label="Открыть меню"
+						>
+							<Menu className="h-6 w-6" />
+						</button>
+					</div>
+				</motion.div>
 			</motion.header>
 
 			<SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />

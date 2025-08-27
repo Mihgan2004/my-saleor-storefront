@@ -618,3 +618,14 @@ body {
 .z-hide {
 	z-index: var(--z-hide);
 }
+html,
+body {
+	width: 100%;
+	overflow-x: hidden; /* чтобы отрицательные маргины не создавали горизонтальный скролл */
+	box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+}
