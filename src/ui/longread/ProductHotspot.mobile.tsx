@@ -39,7 +39,7 @@ export function ProductHotspotMobile({
 	return (
 		<motion.div
 			className="absolute z-30"
-			style={{ left: `${x}%`, top: `${y}%`, translateX: "-50%", translateY: "-50%", opacity }}
+			style={{ left: `${x}%`, top: `${y}%`, transform: "translate(-50%, -50%)", opacity }}
 		>
 			<button
 				type="button"

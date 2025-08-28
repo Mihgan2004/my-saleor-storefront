@@ -48,7 +48,7 @@ function Feature({
 	return (
 		<motion.div
 			className={`absolute z-20 flex w-[34ch] gap-2 ${baseSideCls}`}
-			style={{ top: `${threshold * 100}%`, translateY: "-50%", opacity, x }}
+			style={{ top: `${threshold * 100}%`, transform: "translateY(-50%)", opacity, x }}
 		>
 			<div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-sm">
 				<h3 className="text-lg font-semibold text-white">{item.title}</h3>
