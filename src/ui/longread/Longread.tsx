@@ -1,43 +1,36 @@
 // FILE: src/ui/longread/Longread.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import { SectionNav } from "./SectionNav"; // desktop
 import { UndergroundDesktop } from "./UndergroundDesktop";
 import { ArenaDesktop } from "./ArenaDesktop";
 import { RangeDesktop } from "./RangeDesktop";
 
-import { UndergroundMobile } from "./UndergroundMobile";
-import { ArenaMobile } from "./ArenaMobile";
-import { RangeMobile } from "./RangeMobile";
-import { BenefitsMobile } from "./BenefitsMobile";
-import { SectionNavMobile } from "./SectionNavMobile"; // ⬅️ включили
-
-const mobileNavItems = [
-	{ id: "underground", label: "Underground" },
-	{ id: "arena", label: "Arena" },
-	{ id: "range", label: "Tactical" },
-	{ id: "why", label: "Почему" },
-];
-
 export function Longread() {
+	const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+
+	useEffect(() => {
+		const mq = window.matchMedia("(min-width: 1024px)");
+		const onChange = () => setIsDesktop(mq.matches);
+		onChange(); // первичная установка
+		mq.addEventListener("change", onChange);
+		return () => mq.removeEventListener("change", onChange);
+	}, []);
+
+	// SSR и первый клиентский тик — ничего не рендерим, чтобы избежать рассинхрона
+	if (isDesktop === null) return null;
+
+	// Мобильные/планшеты < 1024px — лонгрид полностью выключен
+	if (!isDesktop) return null;
+
+	// Десктоп — как было
 	return (
 		<>
-			{/* DESKTOP (≥ lg) */}
-			<div className="hidden lg:block">
-				<SectionNav />
-				<UndergroundDesktop />
-				<ArenaDesktop />
-				<RangeDesktop />
-			</div>
-
-			{/* MOBILE (< lg) */}
-			<div className="lg:hidden">
-				<UndergroundMobile />
-				<ArenaMobile />
-				<RangeMobile />
-				<BenefitsMobile />
-				<SectionNavMobile items={mobileNavItems} /> {/* ⬅️ вернули */}
-			</div>
+			<SectionNav />
+			<UndergroundDesktop />
+			<ArenaDesktop />
+			<RangeDesktop />
 		</>
 	);
 }

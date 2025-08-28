@@ -680,3 +680,10 @@ body {
 	padding-top: max(16px, var(--safe-top));
 	padding-bottom: max(16px, var(--safe-bottom));
 }
+/* ==== Full Bleed (секция/медиа на 100vw) ==== */
+.full-bleed {
+	width: 100vw;
+	max-width: 100vw;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
+}
