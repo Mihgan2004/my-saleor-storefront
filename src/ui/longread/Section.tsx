@@ -47,8 +47,10 @@ export function Section({
 	const local = useMotionValue(0);
 	const source = progress ?? local;
 
+	// 🔧 Мягкий параллакс; на мобилке local прогресс обновляется скроллом ниже
 	const bgY = useTransform<number, string>(source, [0, 1], ["-3%", "3%"]);
 
+	// 🔧 Трекинг видимости
 	useEffect(() => {
 		if (inView && !viewTracked.current) {
 			track("chapter_view", { id, timestamp: Date.now() });
@@ -56,14 +58,46 @@ export function Section({
 		}
 	}, [inView, id]);
 
+	// 🔧 Обновление локального прогресса на мобилке/когда progress не передан
+	useEffect(() => {
+		if (progress) return; // внешний источник сам рулит
+		const el = ref.current;
+		if (!el) return;
+
+		let raf = 0;
+		const onScroll = () => {
+			cancelAnimationFrame(raf);
+			raf = requestAnimationFrame(() => {
+				const rect = el.getBoundingClientRect();
+				const vh = window.innerHeight || 1;
+				// «проход» секции через вьюпорт: 0..1
+				const total = Math.max(rect.height + vh, 1);
+				const passed = Math.min(Math.max(vh - rect.top, 0), total);
+				local.set(passed / total);
+			});
+		};
+
+		onScroll();
+		window.addEventListener("scroll", onScroll, { passive: true });
+		window.addEventListener("resize", onScroll, { passive: true });
+		return () => {
+			cancelAnimationFrame(raf);
+			window.removeEventListener("scroll", onScroll);
+			window.removeEventListener("resize", onScroll);
+		};
+	}, [progress, local]);
+
 	return (
 		<section
 			id={id}
 			ref={ref}
 			className="relative isolate w-full overflow-hidden bg-black text-white"
-			style={{ height, contain: "layout paint style" }}
+			// ❗ высота сцены теперь только на ≥lg; на мобилке — авто.
+			style={{ ["--scene-h" as any]: height, contain: "layout paint style" }}
 		>
-			<div className="sticky top-0 h-screen overflow-hidden">
+			{/* Внутренняя сцена: на десктопе sticky+100vh; на мобилке обычный блок с минимумом 100svh,
+          чтобы Image fill корректно центрировался и не «лип сверху». */}
+			<div className="relative min-h-[100svh] overflow-hidden lg:sticky lg:top-0 lg:h-screen">
 				<motion.div
 					className="absolute inset-0 will-change-transform"
 					style={{ y: shouldReduceMotion ? 0 : bgY }}
@@ -74,7 +108,7 @@ export function Section({
 						fill
 						priority={id === "hero"}
 						sizes="100vw"
-						className="object-cover"
+						className="object-cover object-center"
 					/>
 				</motion.div>
 
@@ -110,6 +144,15 @@ export function Section({
 					</div>
 				</div>
 			</div>
+
+			{/* высота сцены применяется только на десктопе */}
+			<style jsx>{`
+				@media (min-width: 1024px) {
+					#${id} {
+						height: var(--scene-h);
+					}
+				}
+			`}</style>
 		</section>
 	);
 }
