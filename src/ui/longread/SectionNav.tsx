@@ -1,133 +1,182 @@
-/// FILE: src/ui/longread/SectionNav.tsx
+/* FILE: src/ui/longread/SectionNav.tsx */
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
-interface NavItem {
-	id: string;
-	label: string;
-	key: string;
+/** ИДшники секций по умолчанию (если не найдём секции в DOM) */
+const FALLBACK_IDS = ["underground", "arena", "range", "why"] as const;
+
+type Chapter = { id: string; label: string };
+
+function findChapters(): Chapter[] {
+	if (typeof document === "undefined") return FALLBACK_IDS.map((id) => ({ id, label: id }));
+	const nodes = Array.from(document.querySelectorAll<HTMLElement>("section[id]"));
+	const ids = nodes.map((n) => n.id).filter((id) => FALLBACK_IDS.includes(id as any));
+	const uniq = Array.from(new Set(ids));
+	const base = uniq.length ? uniq : [...FALLBACK_IDS];
+	return base.map((id) => ({
+		id,
+		label:
+			id === "underground"
+				? "Underground"
+				: id === "arena"
+					? "Arena"
+					: id === "range"
+						? "Tactical"
+						: id === "why"
+							? "Почему"
+							: id,
+	}));
 }
 
-const items: NavItem[] = [
-	{ id: "hero", label: "Hero", key: "1" },
-	{ id: "underground", label: "Underground", key: "2" },
-	{ id: "arena", label: "Arena", key: "3" },
-	{ id: "range", label: "Range", key: "4" },
-];
-
 export function SectionNav() {
-	const [active, setActive] = useState("hero");
+	const chapters = useMemo(findChapters, []);
+	const [active, setActive] = useState(0);
 
-	// IntersectionObserver for tracking active section
+	// ref вместо зависимости useEffect на active — снимаем warning "missing dependency"
+	const activeRef = useRef(active);
 	useEffect(() => {
-		const observer = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						setActive(entry.target.id);
-					}
-				});
-			},
-			{
-				rootMargin: "-40% 0px -40% 0px",
-				threshold: 0.01,
-			},
-		);
+		activeRef.current = active;
+	}, [active]);
 
-		items.forEach((item) => {
-			const element = document.getElementById(item.id);
-			if (element) {
-				observer.observe(element);
-			}
-		});
-
-		return () => observer.disconnect();
-	}, []);
-
-	// Hotkeys 1..4
+	// IntersectionObserver для подсветки активной секции
 	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			const index = Number(e.key) - 1;
-			if (index >= 0 && index < items.length) {
-				const targetId = items[index].id;
-				const element = document.getElementById(targetId);
-				if (element) {
-					element.scrollIntoView({
-						behavior: "smooth",
-						block: "start",
-					});
-				}
-			}
+		if (typeof window === "undefined") return;
+
+		const opts: IntersectionObserverInit = {
+			root: null,
+			rootMargin: "-35% 0% -50% 0%",
+			threshold: [0, 0.15, 0.35, 0.6, 1],
 		};
 
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, []);
+		const handler: IntersectionObserverCallback = (entries) => {
+			let maxRatio = -1;
+			let currentIndex = activeRef.current; // используем ref, а не переменную из замыкания
 
-	const handleNavClick = (targetId: string) => {
-		const element = document.getElementById(targetId);
-		if (element) {
-			element.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			});
+			for (const e of entries) {
+				const id = (e.target as HTMLElement).id;
+				const idx = chapters.findIndex((c) => c.id === id);
+				if (idx !== -1 && e.intersectionRatio > maxRatio) {
+					maxRatio = e.intersectionRatio;
+					currentIndex = idx;
+				}
+			}
+			if (currentIndex !== activeRef.current) setActive(currentIndex);
+		};
+
+		const io = new IntersectionObserver(handler, opts);
+		chapters.forEach(({ id }) => {
+			const el = document.getElementById(id);
+			if (el) io.observe(el);
+		});
+
+		return () => io.disconnect();
+	}, [chapters]);
+
+	const jump = (idx: number) => {
+		if (typeof window === "undefined") return;
+		const id = chapters[idx]?.id;
+		const el = id ? document.getElementById(id) : null;
+		if (!el) return;
+
+		const headerOffset = 72; // при необходимости подстрой
+		const rect = el.getBoundingClientRect();
+		const y = window.scrollY + rect.top - headerOffset;
+
+		window.scrollTo({ top: y, behavior: "smooth" });
+	};
+
+	const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+		if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+			e.preventDefault();
+			jump(Math.max(0, activeRef.current - 1));
+		}
+		if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+			e.preventDefault();
+			jump(Math.min(chapters.length - 1, activeRef.current + 1));
 		}
 	};
 
-	// Check reduced motion
-	const shouldReduceMotion =
-		typeof window !== "undefined" ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
-
 	return (
-		<nav
-			className="fixed right-5 top-1/2 z-[60] -translate-y-1/2"
+		<div
 			role="navigation"
-			aria-label="Section navigation"
+			aria-label="Навигация по разделам"
+			tabIndex={0}
+			onKeyDown={onKey}
+			className="
+        /* на                   мобиле не рендерим */ /* убрал
+        right-4, чтобы не конфликтовало
+        со значением ниже */ pointer-events-none fixed top-1/2 z-30 hidden -translate-y-1/2
+        [right:calc(env(safe-area-inset-right,0px)+16px)]
+        lg:flex
+      "
+			style={{
+				// drop-shadow вместо массивного box-shadow — не создаёт горизонтального скролла/«выступа»
+				filter: "drop-shadow(0 6px 20px rgba(0,0,0,.35))",
+			}}
 		>
-			<ul className="flex flex-col items-center gap-3 rounded-full bg-black/35 px-2 py-3 backdrop-blur">
-				{items.map((item) => {
-					const isActive = active === item.id;
-
+			<motion.div
+				className="
+          pointer-events-auto
+          flex flex-col items-center gap-2
+          rounded-[24px]
+          border border-white/12
+          bg-[rgba(20,20,22,0.45)] px-2
+          py-3
+          backdrop-blur-xl
+        "
+				initial={{ opacity: 0, y: 8 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.25 }}
+			>
+				{chapters.map((c, idx) => {
+					const isActive = idx === active;
 					return (
-						<li key={item.id}>
-							<motion.button
-								onClick={() => handleNavClick(item.id)}
-								aria-label={`Go to ${item.label} section`}
-								aria-current={isActive ? "true" : "false"}
-								className={[
-									"grid h-3.5 w-3.5 place-items-center rounded-full ring-1 ring-white/40 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50",
-									isActive ? "bg-white" : "bg-white/45 hover:bg-white/80",
-								].join(" ")}
-								whileHover={shouldReduceMotion ? {} : { scale: 1.1 }}
-								whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
-								animate={
-									shouldReduceMotion
-										? {}
-										: {
-												scale: isActive ? 1.25 : 1,
-											}
-								}
-								transition={{
-									duration: shouldReduceMotion ? 0 : 0.18,
-									ease: [0.22, 0.61, 0.36, 1],
-								}}
+						<button
+							key={c.id}
+							onClick={() => jump(idx)}
+							aria-label={c.label}
+							aria-current={isActive ? "true" : undefined}
+							className="
+                group relative
+                grid h-6
+                w-6
+                place-items-center rounded-full
+                transition-transform
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-olive/40
+              "
+						>
+							<span
+								className={`
+                  block h-2.5 w-2.5 rounded-full
+                  ${isActive ? "bg-white" : "bg-white/45 group-hover:bg-white/80"}
+                  transition-colors
+                `}
+							/>
+							{isActive && (
+								<span className="absolute inset-0 animate-pulse rounded-full ring-2 ring-white/30" />
+							)}
+
+							<span
+								className="
+                  pointer-events-none absolute right-full top-1/2
+                  mr-2 -translate-y-1/2
+                  whitespace-nowrap
+                  rounded-md border border-white/10
+                  bg-[rgba(17,17,18,0.9)] px-2 py-1
+                  text-[12px] leading-none text-white/90
+                  opacity-0 shadow-lg backdrop-blur
+                  transition-opacity
+                  group-hover:opacity-100
+                "
 							>
-								{/* Visual indication for screen readers only */}
-								<span className="sr-only">
-									{item.label} {isActive ? "(current section)" : ""}
-								</span>
-							</motion.button>
-						</li>
+								{c.label}
+							</span>
+						</button>
 					);
 				})}
-			</ul>
-
-			{/* Hotkey hint */}
-			<div className="mt-2 text-center">
-				<span className="text-[10px] text-white/50">1-4</span>
-			</div>
-		</nav>
+			</motion.div>
+		</div>
 	);
 }
