@@ -1,3 +1,4 @@
+// FILE: src/ui/longread/Longread.tsx
 "use client";
 
 import { SectionNav } from "./SectionNav"; // desktop
@@ -9,7 +10,14 @@ import { UndergroundMobile } from "./UndergroundMobile";
 import { ArenaMobile } from "./ArenaMobile";
 import { RangeMobile } from "./RangeMobile";
 import { BenefitsMobile } from "./BenefitsMobile";
-// import { SectionNavMobile } from "./SectionNavMobile"; // ← навбар для мобилки убран
+import { SectionNavMobile } from "./SectionNavMobile"; // ⬅️ включили
+
+const mobileNavItems = [
+	{ id: "underground", label: "Underground" },
+	{ id: "arena", label: "Arena" },
+	{ id: "range", label: "Tactical" },
+	{ id: "why", label: "Почему" },
+];
 
 export function Longread() {
 	return (
@@ -28,8 +36,7 @@ export function Longread() {
 				<ArenaMobile />
 				<RangeMobile />
 				<BenefitsMobile />
-				{/* Мобильный навбар отключён */}
-				{/* <SectionNavMobile items={mobileNavItems} /> */}
+				<SectionNavMobile items={mobileNavItems} /> {/* ⬅️ вернули */}
 			</div>
 		</>
 	);

@@ -1,57 +1,61 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 
-export type SectionNavMobileItem = { id: string; label: string };
+type Item = { id: string; label: string };
 
-export function SectionNavMobile({ items }: { items: SectionNavMobileItem[] }) {
-	const [active, setActive] = useState(items[0]?.id ?? "");
+export function SectionNavMobile({ items }: { items: Item[] }) {
+	const [active, setActive] = useState<string>(items[0]?.id);
 
 	useEffect(() => {
-		const io = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((e) => e.isIntersecting && setActive(e.target.id));
-			},
-			{ rootMargin: "-55% 0px -35% 0px", threshold: 0.01 },
-		);
-
-		items.forEach((it) => {
-			const el = document.getElementById(it.id);
-			if (el) io.observe(el);
+		const observers: IntersectionObserver[] = [];
+		items.forEach(({ id }) => {
+			const el = document.getElementById(id);
+			if (!el) return;
+			const io = new IntersectionObserver(
+				([entry]) => {
+					if (entry.isIntersecting) setActive(id);
+				},
+				{ rootMargin: "-30% 0px -50% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+			);
+			io.observe(el);
+			observers.push(io);
 		});
-
-		return () => io.disconnect();
+		return () => observers.forEach((o) => o.disconnect());
 	}, [items]);
 
-	const go = (id: string) => {
-		document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-	};
-
 	return (
-		<nav className="fixed bottom-3 right-3 z-50">
-			<ul className="flex items-center gap-2 rounded-full bg-black/40 px-2 py-2 backdrop-blur">
+		<nav
+			className="
+        full-bleed fixed inset-x-0 bottom-0 z-50
+        px-3 pb-[max(10px,env(safe-area-inset-bottom))]
+      "
+			aria-label="Разделы"
+		>
+			<div
+				className="
+          bg-white/8 mx-3 flex items-center justify-between gap-2
+          rounded-2xl
+          border border-white/10 p-2 shadow-[0_10px_30px_0_rgba(0,0,0,0.35)]
+          backdrop-blur
+        "
+			>
 				{items.map((it) => {
 					const isActive = it.id === active;
 					return (
-						<li key={it.id}>
-							<motion.button
-								onClick={() => go(it.id)}
-								aria-label={it.label}
-								aria-current={isActive}
-								className={`h-3.5 w-3.5 rounded-full ring-1 ring-white/40 ${
-									isActive ? "bg-white" : "bg-white/50"
-								}`}
-								whileTap={{ scale: 0.9 }}
-								whileHover={{ scale: 1.1 }}
-								transition={{ duration: 0.16 }}
-							/>
-						</li>
+						<a
+							key={it.id}
+							href={`#${it.id}`}
+							className={`
+                flex-1 rounded-xl py-2 text-center text-[13px]
+                transition
+                ${isActive ? "bg-white/15 font-semibold" : "opacity-80 hover:opacity-100"}
+              `}
+						>
+							{it.label}
+						</a>
 					);
 				})}
-			</ul>
-			<div className="mt-1 text-center text-[10px] text-white/60">
-				{items.length > 0 ? "1–" + items.length : ""}
 			</div>
 		</nav>
 	);
