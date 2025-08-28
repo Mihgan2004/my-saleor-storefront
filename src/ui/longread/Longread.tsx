@@ -9,17 +9,9 @@ import { UndergroundMobile } from "./UndergroundMobile";
 import { ArenaMobile } from "./ArenaMobile";
 import { RangeMobile } from "./RangeMobile";
 import { BenefitsMobile } from "./BenefitsMobile";
-import { SectionNavMobile } from "./SectionNavMobile";
+// import { SectionNavMobile } from "./SectionNavMobile"; // ← навбар для мобилки убран
 
 export function Longread() {
-	// Секции мобильного лонгрида для навигации
-	const mobileNavItems = [
-		{ id: "underground", label: "Underground" },
-		{ id: "arena", label: "Arena" },
-		{ id: "range", label: "Tactical" },
-		{ id: "why", label: "Почему" }, // если используешь BenefitsMobile
-	];
-
 	return (
 		<>
 			{/* DESKTOP (≥ lg) */}
@@ -36,9 +28,8 @@ export function Longread() {
 				<ArenaMobile />
 				<RangeMobile />
 				<BenefitsMobile />
-
-				{/* Передаём items, чтобы не было "assigned but never used" */}
-				<SectionNavMobile items={mobileNavItems} />
+				{/* Мобильный навбар отключён */}
+				{/* <SectionNavMobile items={mobileNavItems} /> */}
 			</div>
 		</>
 	);
