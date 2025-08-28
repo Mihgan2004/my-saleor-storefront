@@ -629,3 +629,25 @@ body {
 *::after {
 	box-sizing: inherit;
 }
+/***** мобильная плавность и изоляция рендера *****/
+@media (max-width: 1023px) {
+	.snap-y {
+		scroll-snap-type: y mandatory;
+	}
+	.snap-start {
+		scroll-snap-align: start;
+	}
+	.gpu {
+		transform: translateZ(0);
+		will-change: transform, opacity;
+	}
+}
+
+/* если пользователь просит меньше анимаций — мы их снижаем */
+@media (prefers-reduced-motion: reduce) {
+	* {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

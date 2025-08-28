@@ -1,12 +1,9 @@
-// src/ui/longread/BenefitsMobile.tsx
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { motion, useInView, useMotionValue, useTransform, animate, type MotionValue } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
-type Item = { title: string; desc: string; side: "left" | "right" };
-
-const items: Omit<Item, "side">[] = [
+const items = [
 	{ title: "Материалы PRO", desc: "Износостойкие ткани и фурнитура. Держат нагрузку и погоду." },
 	{ title: "Инженерная посадка", desc: "Свобода шага, вентиляция, карманы по делу — без лишнего шума." },
 	{ title: "Сделано здесь", desc: "Локальное производство и контроль качества на каждом шаге." },
@@ -15,121 +12,80 @@ const items: Omit<Item, "side">[] = [
 	{ title: "Саппорт 24/7", desc: "Отвечаем быстро и по делу в любом канале." },
 ];
 
-function NodeDot({ progress, t }: { progress: MotionValue<number>; t: number }) {
-	const opacity = useTransform(progress, [t - 0.02, t], [0.4, 1]);
-	return (
-		<motion.span
-			className="absolute left-1/2 z-20 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
-			style={{ top: `${t * 100}%`, opacity }}
-			aria-hidden
-		/>
-	);
-}
-
-function Feature({
-	item,
-	threshold,
-	progress,
-}: {
-	item: Item;
-	threshold: number;
-	progress: MotionValue<number>;
-}) {
-	const appearStart = Math.max(0, threshold - 0.1);
-	const opacity = useTransform(progress, [appearStart, threshold], [0, 1]);
-	const x = useTransform(progress, [appearStart, threshold], item.side === "left" ? [-24, 0] : [24, 0]);
-
-	const baseSideCls =
-		item.side === "left"
-			? "right-[calc(50%+48px)] items-end text-right"
-			: "left-[calc(50%+48px)] items-start text-left";
-
-	return (
-		<motion.div
-			className={`absolute z-20 flex w-[34ch] gap-2 ${baseSideCls}`}
-			style={{ top: `${threshold * 100}%`, translateY: "-50%", opacity, x }}
-		>
-			<div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-sm">
-				<h3 className="text-lg font-semibold text-white">{item.title}</h3>
-				<p className="mt-1 text-sm text-white/70">{item.desc}</p>
-			</div>
-		</motion.div>
-	);
-}
-
 export function BenefitsMobile() {
-	const ref = useRef<HTMLDivElement>(null);
-	const inView = useInView(ref, { amount: 0.35, once: true });
-
-	const FUSE_DURATION = 3.6;
+	const ref = useRef<HTMLElement>(null);
 	const progress = useMotionValue(0);
 
+	// «Искра» идёт сверху вниз, пока секция в зоне видимости
+	// внутри BenefitsMobile.tsx
 	useEffect(() => {
-		if (inView) {
-			const controls = animate(progress, 1, {
-				duration: FUSE_DURATION,
-				ease: [0.22, 1, 0.36, 1],
-			});
-			return () => controls.stop();
-		}
-	}, [inView, progress]);
+		const el = ref.current;
+		if (!el) return;
 
-	const itemsWithSide: Item[] = useMemo(
-		() => items.map((it, i) => ({ ...it, side: i % 2 === 0 ? "left" : "right" })),
-		[],
-	);
-	const thresholds = useMemo(() => {
-		const n = itemsWithSide.length;
-		return itemsWithSide.map((_, i) => (i + 1) / (n + 1));
-	}, [itemsWithSide]);
+		let started = false;
+		const io = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((e) => {
+					if (e.isIntersecting && !started) {
+						started = true;
+						const controls = animate(progress, 1, { duration: 3.2, ease: [0.22, 1, 0.36, 1] });
+						// важно: остановить на размонтировании
+						cleanup = () => controls.stop();
+					}
+				});
+			},
+			{ threshold: 0.25 },
+		);
 
-	const fillH = useTransform(progress, [0, 1], ["0%", "100%"]);
+		let cleanup = () => {};
+		io.observe(el);
+		return () => {
+			cleanup();
+			io.disconnect();
+		};
+	}, [progress]);
+
 	const sparkTop = useTransform(progress, [0, 1], ["0%", "100%"]);
+	const fillH = useTransform(progress, [0, 1], ["0%", "100%"]);
 
 	return (
-		<section
-			id="benefits"
-			className="relative ml-[calc(50%-50vw)] mr-[calc(50%-50vw)] w-[100vw] bg-black text-white"
-		>
-			<div className="absolute inset-x-0 -top-1 h-24 bg-gradient-to-b from-black to-transparent" />
-			<div className="mx-auto max-w-6xl px-4 py-28">
-				<div className="mb-12 text-center">
-					<h2 className="text-3xl font-black leading-tight">ПОЧЕМУ GRAYCARDINAL</h2>
-					<p className="mx-auto mt-2 max-w-2xl text-white/70">
-						Мы делаем вещи, которые работают в городе: прочные, продуманные, честные.
-					</p>
-				</div>
+		<section id="why" ref={ref} className="bg-black text-white" style={{ contain: "layout paint style" }}>
+			<div className="mx-auto max-w-7xl px-4 py-14">
+				<h2 className="text-center text-3xl font-black leading-tight">ПОЧЕМУ GRAYCARDINAL</h2>
+				<p className="mx-auto mt-2 max-w-prose text-center text-white/70">
+					Мы делаем вещи, которые работают в городе: прочные, продуманные, честные.
+				</p>
 
-				<div ref={ref} className="relative mx-auto h-[72vh] max-h-[900px] min-h-[520px]">
-					<div className="absolute left-1/2 top-0 z-10 h-full w-[2px] -translate-x-1/2 bg-white/10" />
+				<div className="relative mx-auto mt-10 max-w-md">
+					{/* линия */}
+					<div className="absolute left-4 top-0 z-10 h-full w-[2px] bg-white/12" />
+					<motion.div className="absolute left-4 top-0 z-20 w-[2px] bg-white" style={{ height: fillH }} />
 
-					<motion.div
-						className="absolute left-1/2 top-0 z-20 w-[2px] -translate-x-1/2 bg-white"
-						style={{ height: fillH }}
-					/>
-
-					<motion.div
-						aria-hidden
-						className="absolute left-1/2 z-30 -translate-x-1/2"
-						style={{ top: sparkTop }}
-					>
-						<div className="relative h-4 w-4 -translate-y-1/2">
+					{/* искра */}
+					<motion.div className="absolute left-4 z-30 -translate-x-1/2" style={{ top: sparkTop }}>
+						<div className="relative h-3.5 w-3.5 -translate-y-1/2">
 							<span className="absolute inset-0 rounded-full bg-white" />
 							<span className="absolute -inset-2 rounded-full bg-white/60 blur-sm" />
-							<span className="absolute -inset-6 rounded-full bg-cyan-400/20 blur-lg" />
 						</div>
 					</motion.div>
 
-					{thresholds.map((t, i) => (
-						<NodeDot key={`dot-${i}`} progress={progress} t={t} />
-					))}
-
-					{itemsWithSide.map((it, i) => (
-						<Feature key={it.title} item={it} threshold={thresholds[i]} progress={progress} />
-					))}
+					<ul className="space-y-5 pl-10">
+						{items.map((it, i) => (
+							<motion.li
+								key={it.title}
+								initial={{ opacity: 0, x: 10 }}
+								whileInView={{ opacity: 1, x: 0 }}
+								viewport={{ once: true, amount: 0.4 }}
+								transition={{ duration: 0.28, delay: i * 0.05 }}
+								className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"
+							>
+								<h3 className="text-base font-semibold">{it.title}</h3>
+								<p className="mt-1 text-sm text-white/75">{it.desc}</p>
+							</motion.li>
+						))}
+					</ul>
 				</div>
 			</div>
-			<div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent" />
 		</section>
 	);
 }

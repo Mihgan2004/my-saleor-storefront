@@ -1,22 +1,20 @@
-// src/ui/longread/ProductHotspot.mobile.tsx
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
-import { motion, useTransform, useMotionValue, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useTransform, type MotionValue } from "framer-motion";
 import clsx from "clsx";
-import { track } from "./analytics";
 
-interface ProductHotspotProps {
-	x: number;
-	y: number;
+type Side = "left" | "right" | "top" | "bottom";
+
+export interface ProductHotspotMobileProps {
+	x: number; // проценты (0..100)
+	y: number; // проценты (0..100)
 	label: string;
 	href: string;
-	side?: "left" | "right";
-	progress?: MotionValue<number>;
-	appearAt?: number;
-	chapter?: string;
-	variant?: string;
+	side?: Side;
+	progress?: MotionValue<number>; // 0..1
+	appearAt?: number; // 0..1
 }
 
 export function ProductHotspotMobile({
@@ -27,93 +25,58 @@ export function ProductHotspotMobile({
 	side = "right",
 	progress,
 	appearAt = 0,
-	chapter = "unknown",
-	variant,
-}: ProductHotspotProps) {
-	const [isHovered, setIsHovered] = useState(false);
-	const [isFocused, setIsFocused] = useState(false);
-
+}: ProductHotspotMobileProps) {
+	const [open, setOpen] = useState(false);
 	const fallback = useMotionValue(1);
-	const source = progress ?? fallback;
+	const src = progress ?? fallback;
 
-	const opacity = useTransform<number, number>(source, [appearAt, Math.min(1, appearAt + 0.1)], [0, 1]);
+	// появление по прогрессу
+	const opacity = useTransform<number, number>(src, [appearAt, Math.min(1, appearAt + 0.12)], [0, 1]);
 
-	const shouldReduceMotion =
-		typeof window !== "undefined" ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
-
-	const showTooltip = isHovered || isFocused;
-	const tooltipId = `hotspot-${x}-${y}-tooltip`;
-
-	const handleClick = () => track("shop_the_look_click", { chapter, variant, label, href });
+	const tooltipDirCls =
+		side === "left" ? "right-12" : side === "top" ? "bottom-12" : side === "bottom" ? "top-12" : "left-12";
 
 	return (
 		<motion.div
-			className="absolute z-50 will-change-transform"
-			style={{
-				x: `${x}%`,
-				y: `${y}%`,
-				opacity,
-				pointerEvents: "auto",
-			}}
+			className="absolute z-30"
+			style={{ left: `${x}%`, top: `${y}%`, translateX: "-50%", translateY: "-50%", opacity }}
 		>
-			<Link
-				href={href}
-				onClick={handleClick}
-				className="group relative block select-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-				aria-label={`Go to ${label}`}
-				aria-describedby={tooltipId}
-				aria-expanded={showTooltip}
-				onMouseEnter={() => setIsHovered(true)}
-				onMouseLeave={() => setIsHovered(false)}
-				onFocus={() => setIsFocused(true)}
-				onBlur={() => setIsFocused(false)}
+			<button
+				type="button"
+				onClick={() => setOpen((v) => !v)}
+				className={clsx(
+					"relative grid h-10 w-10 place-items-center rounded-full bg-white/90 text-black shadow-lg ring-2 ring-black/40",
+					"transition active:scale-95",
+				)}
+				aria-expanded={open}
+				aria-label={label}
 			>
-				<motion.span
-					className="relative grid h-8 w-8 place-items-center rounded-full bg-white/80 shadow-lg ring-2 ring-black/40 transition-all duration-150"
-					animate={shouldReduceMotion ? {} : { scale: [1, 1.05, 1], y: [0, -2, 0] }}
-					transition={{
-						duration: shouldReduceMotion ? 0 : 2.2,
-						repeat: shouldReduceMotion ? 0 : Infinity,
-						ease: "easeInOut",
-					}}
-					whileHover={shouldReduceMotion ? {} : { scale: 1.1 }}
-					whileFocus={shouldReduceMotion ? {} : { scale: 1.1 }}
-				>
-					<svg width="12" height="12" viewBox="0 0 12 12" className="text-black" aria-hidden>
-						<path d="M6 1.5v9M1.5 6h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-					</svg>
+				<svg width="14" height="14" viewBox="0 0 12 12" aria-hidden>
+					<path d="M6 1.5v9M1.5 6h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+				</svg>
 
-					<span className="pointer-events-none absolute -inset-1 rounded-full bg-white/60 opacity-50 blur-[10px] transition-opacity duration-200 group-hover:opacity-80 group-focus-visible:opacity-80" />
-				</motion.span>
+				{/* большая hit-area */}
+				<span className="absolute -inset-3 rounded-full" />
+			</button>
 
-				<motion.span
-					className={clsx(
-						"pointer-events-none absolute top-1/2 h-px -translate-y-1/2 bg-black/50 transition-all duration-200",
-						side === "right" ? "left-8" : "right-8",
-					)}
-					initial={{ width: 0, opacity: 0 }}
-					animate={{ width: showTooltip ? 24 : 0, opacity: showTooltip ? 1 : 0 }}
-					transition={{ duration: 0.18 }}
-					aria-hidden
-				/>
-
-				<motion.span
-					id={tooltipId}
-					role="tooltip"
-					className={clsx(
-						"pointer-events-none absolute top-1/2 max-w-[70vw] -translate-y-1/2 whitespace-normal rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium text-black shadow-xl ring-1 ring-black/10 backdrop-blur-sm transition-all duration-200",
-						side === "right" ? "left-8 ml-6" : "right-8 mr-6",
-					)}
-					initial={{ opacity: 0, scale: 0.9 }}
-					animate={{
-						opacity: showTooltip ? 1 : 0,
-						scale: showTooltip ? 1 : 0.9,
-					}}
-					transition={{ duration: 0.18, ease: [0.22, 0.61, 0.36, 1] }}
+			{/* тултип (тапом) */}
+			<motion.div
+				initial={false}
+				animate={open ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
+				className={clsx(
+					"pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white/95 px-3 py-1.5",
+					"text-xs font-medium text-black shadow-xl ring-1 ring-black/10 backdrop-blur-sm",
+					tooltipDirCls,
+				)}
+			>
+				<Link
+					className="pointer-events-auto underline-offset-2 hover:underline"
+					href={href}
+					aria-label={`Перейти: ${label}`}
 				>
 					{label} →
-				</motion.span>
-			</Link>
+				</Link>
+			</motion.div>
 		</motion.div>
 	);
 }

@@ -174,14 +174,14 @@ const MobileMenu: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
 							</div>
 
 							{/* На мобиле показываем пункты меню: */}
-							<nav className="flex items-center gap-6 md:hidden">
-								<button className="font-tactical text-[14px] uppercase tracking-[0.08em] text-silver transition hover:text-white">
+							<nav className="flex flex-col gap-6 md:hidden">
+								<button className="text-left font-tactical text-[16px] uppercase tracking-[0.08em] text-silver transition hover:text-white">
 									КАТАЛОГ
 								</button>
-								<button className="font-tactical text-[14px] uppercase tracking-[0.08em] text-silver transition hover:text-white">
+								<button className="text-сilver text-left font-tactical text-[16px] uppercase tracking-[0.08ем] transition hover:text-white">
 									О НАС
 								</button>
-								<button className="font-tactical text-[14px] uppercase tracking-[0.08em] text-silver transition hover:text-white">
+								<button className="font-тactical text-сilver text-left text-[16px] uppercase tracking-[0.08em] transition hover:text-white">
 									КОНТАКТЫ
 								</button>
 							</nav>
@@ -200,10 +200,10 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isCartOpen, setIsCartOpen] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
 	const { scrollY } = useScroll();
 	const headerHeight = useTransform(scrollY, [0, 24], [84, 66]);
 	const yFloat = useTransform(scrollY, [0, 200], [-6, 0]);
+	const headerOpacity = useTransform(scrollY, [0, 50], [0.95, 1]);
 
 	useEffect(() => {
 		const unsub = scrollY.onChange((y) => setIsScrolled(y > 24));
@@ -239,105 +239,172 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 	);
 	void channel;
 
+	/* --- флаг: отключаем подчёркивание у активного пункта --- */
+	const SHOW_ACTIVE_UNDERLINE = false;
+
 	return (
 		<>
-			{/* Центрирование плашки по вьюпорту + safe-area, чтобы не съезжало на мобиле */}
+			{/* Увеличенный отступ сверху для опускания шапки */}
 			<motion.header
-				className={`pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 transition-all duration-200 ${
+				className={`pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 transition-all duration-300 ${
 					isScrolled ? "bg-transparent backdrop-blur-sm" : "bg-transparent"
 				}`}
 				style={{
-					top: "max(env(safe-area-inset-top), 8px)",
+					top: "max(env(safe-area-inset-top), 20px)", // Увеличено с 8px до 20px
 					height: headerHeight,
+					opacity: headerOpacity,
 				}}
 			>
 				<motion.div
-					className="header-plaque plaque-float group pointer-events-auto flex h-12 items-center justify-between gap-2 rounded-[28px] px-3 md:h-16 md:px-5"
-					// ширина не больше экрана: 100vw - 16px, но не шире 1180px
-					style={{ width: "min(calc(100vw - 16px), 1180px)", y: yFloat }}
+					className="header-plaque plaque-float group pointer-events-auto flex h-12 items-center justify-between gap-2 rounded-[28px] px-3 sm:h-14 md:h-16 md:px-5"
+					// Улучшенная адаптивность для мобильных
+					style={{
+						width: "min(calc(100vw - 12px), 1180px)", // Уменьшены отступы для мобильных
+						y: yFloat,
+					}}
+					whileHover={{
+						scale: 1.02,
+						transition: { duration: 0.2 },
+					}}
+					animate={{
+						boxShadow: isScrolled
+							? "0 20px 50px rgba(0, 0, 0, 0.6), 0 5px 15px rgba(0, 0, 0, 0.4)"
+							: "0 16px 40px rgba(0, 0, 0, 0.45), 0 3px 10px rgba(0, 0, 0, 0.35)",
+					}}
 				>
 					{/* Left: logo + nav */}
-					<div className="flex min-w-0 items-center gap-4 md:gap-6">
+					<div className="flex min-w-0 items-center gap-2 sm:gap-3 md:gap-6">
 						<button
 							className="-ml-1 flex items-center md:-ml-2"
 							aria-label="На главную"
 							onClick={(e) => e.preventDefault()}
 						>
-							<div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc/25 bg-gradient-to-b from-graphite to-charcoal shadow-inner transition group-hover:ring-2 group-hover:ring-olive/25">
+							<motion.div
+								className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc/25 bg-gradient-to-b from-graphite to-charcoal shadow-inner transition group-hover:ring-2 group-hover:ring-olive/25 sm:h-9 sm:w-9 md:h-10 md:w-10"
+								whileHover={{
+									rotate: [0, -5, 5, 0],
+									transition: { duration: 0.3 },
+								}}
+								whileTap={{ scale: 0.95 }}
+							>
 								<Logo size={22} showWordmark={false} />
-							</div>
+							</motion.div>
 						</button>
 
-						<nav className="hidden items-center gap-3 md:flex">
-							{nav.map((item) => {
+						<nav className="hidden items-center gap-2 sm:gap-3 md:flex">
+							{nav.map((item, index) => {
 								const active = pathname === item.href;
 								return (
-									<a
+									<motion.a
 										key={item.href}
 										href={item.href}
 										aria-current={active ? "page" : undefined}
-										className={`relative font-tactical text-[14px] uppercase tracking-[0.08em] md:text-[15px] ${
+										className={`relative font-tactical text-[13px] uppercase tracking-[0.08em] sm:text-[14px] md:text-[15px] ${
 											active ? "text-white" : "text-silver hover:text-white"
 										} transition-colors`}
 										onClick={(e) => e.preventDefault()}
+										initial={{ opacity: 0, y: -10 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: index * 0.1 }}
+										whileHover={{
+											y: -2,
+											transition: { duration: 0.2 },
+										}}
 									>
 										<span className="relative">
 											{item.label}
-											{active && (
-												<span className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-olive/40 via-olive to-olive/40" />
+											{SHOW_ACTIVE_UNDERLINE && active && (
+												<motion.span
+													className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-transparent via-olive to-transparent"
+													initial={{ scaleX: 0 }}
+													animate={{ scaleX: 1 }}
+													transition={{ duration: 0.3 }}
+												/>
 											)}
 										</span>
-									</a>
+									</motion.a>
 								);
 							})}
 						</nav>
 					</div>
 
 					{/* Right: search + icons */}
-					<div className="flex items-center gap-1.5 md:gap-2.5">
-						<button
+					<div className="flex items-center gap-1 sm:gap-1.5 md:gap-2.5">
+						<motion.button
 							onClick={() => setIsSearchOpen(true)}
-							className="hidden h-9 items-center gap-2 rounded-full border border-zinc/20 bg-zinc/10 px-3 text-silver transition hover:border-olive/30 hover:bg-zinc/15 focus:outline-none focus:ring-2 focus:ring-olive/40 md:flex"
+							className="hidden h-8 items-center gap-2 rounded-full border border-zinc/20 bg-zinc/10 px-2 text-silver transition hover:border-olive/30 hover:bg-zinc/15 focus:outline-none focus:ring-2 focus:ring-olive/40 sm:flex md:h-9 md:px-3"
 							aria-label="Открыть поиск"
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+						>
+							<Search className="h-3 w-3 md:h-4 md:w-4" />
+							<span className="hidden text-[13px] md:inline">Поиск</span>
+							<span className="hidden font-mono text-[11px] text-silver/60 md:inline">/</span>
+						</motion.button>
+
+						{/* Поиск для мобильных */}
+						<motion.button
+							onClick={() => setIsSearchOpen(true)}
+							className="rounded-lg p-1.5 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 sm:hidden"
+							aria-label="Поиск"
+							whileTap={{ scale: 0.9 }}
 						>
 							<Search className="h-4 w-4" />
-							<span className="text-[13px]">Поиск</span>
-							<span className="font-mono text-[11px] text-silver/60">/</span>
-						</button>
+						</motion.button>
 
-						<button
-							className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
+						<motion.button
+							className="rounded-lg p-1.5 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 md:p-2"
 							aria-label="Избранное"
+							whileHover={{
+								scale: 1.1,
+								rotate: [0, -5, 5, 0],
+							}}
+							whileTap={{ scale: 0.9 }}
 						>
-							<Heart className="h-[18px] w-[18px]" />
-						</button>
-						<button
-							className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
+							<Heart className="h-4 w-4 md:h-[18px] md:w-[18px]" />
+						</motion.button>
+
+						<motion.button
+							className="rounded-lg p-1.5 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 md:p-2"
 							aria-label="Профиль"
+							whileHover={{ scale: 1.1 }}
+							whileTap={{ scale: 0.9 }}
 						>
-							<UserIcon className="h-[18px] w-[18px]" />
-						</button>
+							<UserIcon className="h-4 w-4 md:h-[18px] md:w-[18px]" />
+						</motion.button>
 
-						<button
+						<motion.button
 							onClick={() => setIsCartOpen(true)}
-							className="relative rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40"
+							className="relative rounded-lg p-1.5 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 md:p-2"
 							aria-label="Корзина"
+							whileHover={{
+								scale: 1.1,
+								rotate: [0, -3, 3, 0],
+							}}
+							whileTap={{ scale: 0.9 }}
 						>
-							<ShoppingBag className="h-[18px] w-[18px]" />
+							<ShoppingBag className="h-4 w-4 md:h-[18px] md:w-[18px]" />
 							{mockCart.count > 0 && (
-								<span className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-olive text-[10px] font-bold text-white shadow-[0_0_20px_hsl(var(--olive)_/_0.35)]">
+								<motion.span
+									className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-olive text-[9px] font-bold text-white shadow-[0_0_20px_hsl(var(--olive)_/_0.35)] md:h-[18px] md:w-[18px] md:text-[10px]"
+									initial={{ scale: 0 }}
+									animate={{ scale: 1 }}
+									transition={{ type: "spring", stiffness: 500 }}
+								>
 									{mockCart.count > 99 ? "99+" : mockCart.count}
-								</span>
+								</motion.span>
 							)}
-						</button>
+						</motion.button>
 
-						<button
+						<motion.button
 							onClick={() => setIsMobileMenuOpen(true)}
-							className="rounded-lg p-2 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 md:hidden"
+							className="rounded-lg p-1.5 text-silver transition hover:bg-zinc/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-olive/40 md:hidden"
 							aria-label="Открыть меню"
+							whileHover={{ scale: 1.1 }}
+							whileTap={{ scale: 0.9 }}
 						>
-							<Menu className="h-6 w-6" />
-						</button>
+							<Menu className="h-5 w-5" />
+						</motion.button>
 					</div>
 				</motion.div>
 			</motion.header>
@@ -350,54 +417,308 @@ const Header: React.FC<HeaderProps> = ({ channel }) => {
 			<style jsx global>{`
 				.header-plaque {
 					position: relative;
-					background: hsla(0, 0%, 100%, 0.04);
-					backdrop-filter: saturate(150%) blur(12px);
-					border: 1px solid hsl(220 12% 20% / 0.35);
+
+					/* Усиленный GLASS: больше blur, светлее "молочная" заливка */
+					background: linear-gradient(
+						135deg,
+						hsla(0, 0%, 100%, 0.22) 0%,
+						hsla(0, 0%, 100%, 0.1) 30%,
+						hsla(0, 0%, 100%, 0.15) 60%,
+						hsla(0, 0%, 100%, 0.18) 100%
+					);
+					backdrop-filter: saturate(220%) blur(36px) contrast(118%); /* было blur(30px) */
+					-webkit-backdrop-filter: saturate(220%) blur(36px) contrast(118%);
+
+					/* Менее яркая обводка */
+					border: 1.5px solid hsla(0, 0%, 100%, 0.14); /* было 0.25 */
+
 					box-shadow:
-						0 16px 40px rgba(0, 0, 0, 0.45),
-						0 3px 10px rgba(0, 0, 0, 0.35),
-						inset 0 1px 0 rgba(255, 255, 255, 0.06);
-					transition: transform 0.2s ease;
+						0 8px 32px rgba(0, 0, 0, 0.7),
+						0 16px 70px rgba(0, 0, 0, 0.5),
+						0 4px 16px rgba(0, 0, 0, 0.3),
+						inset 0 2px 0 hsla(0, 0%, 100%, 0.25),
+						inset 0 -1px 0 hsla(0, 0%, 0%, 0.15),
+						inset 1px 0 0 hsla(0, 0%, 100%, 0.1),
+						inset -1px 0 0 hsla(0, 0%, 100%, 0.1);
+					transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 					isolation: isolate;
 				}
+
+				/* Призматический кант: общую яркость приглушили */
 				.header-plaque::before {
 					content: "";
 					position: absolute;
-					inset: -1px;
-					padding: 1px;
-					border-radius: 28px;
-					background: linear-gradient(135deg, hsl(var(--olive) / 0.35), rgba(255, 255, 255, 0.06));
+					inset: -2px;
+					padding: 2px;
+					border-radius: 30px;
+					background: linear-gradient(
+						135deg,
+						hsla(0, 0%, 100%, 0.45) 0%,
+						hsl(var(--olive) / 0.55) 15%,
+						hsla(0, 0%, 100%, 0.32) 30%,
+						hsl(var(--olive) / 0.45) 45%,
+						hsla(0, 0%, 100%, 0.38) 60%,
+						hsl(var(--olive) / 0.5) 75%,
+						hsla(0, 0%, 100%, 0.45) 90%,
+						hsla(0, 0%, 100%, 0.6) 100%
+					);
 					-webkit-mask:
 						linear-gradient(#000 0 0) content-box,
 						linear-gradient(#000 0 0);
 					-webkit-mask-composite: xor;
 					mask-composite: exclude;
 					pointer-events: none;
+
+					/* ↓ приглушение общего свечения канта */
+					opacity: 0.18;
+					animation: prismaticRim 6s ease-in-out infinite;
+					filter: blur(0.4px);
 				}
+
+				@keyframes prismaticRim {
+					0%,
+					100% {
+						opacity: 0.7;
+						filter: hue-rotate(0deg) brightness(1) blur(0.5px);
+					}
+					20% {
+						opacity: 0.9;
+						filter: hue-rotate(15deg) brightness(1.2) blur(0.3px);
+					}
+					40% {
+						opacity: 1;
+						filter: hue-rotate(30deg) brightness(1.4) blur(0.2px);
+					}
+					60% {
+						opacity: 0.95;
+						filter: hue-rotate(20deg) brightness(1.3) blur(0.4px);
+					}
+					80% {
+						opacity: 0.85;
+						filter: hue-rotate(10deg) brightness(1.1) blur(0.6px);
+					}
+				}
+
 				.header-plaque::after {
 					content: "";
 					position: absolute;
 					inset: 0;
+					border-radius: 28px;
 					pointer-events: none;
-					opacity: 0.06;
-					background: radial-gradient(50% 60% at 20% 0%, rgba(255, 255, 255, 0.25), transparent 60%),
-						radial-gradient(50% 60% at 80% 100%, hsl(var(--olive) / 0.25), transparent 65%);
+					opacity: 0.2;
+					background: radial-gradient(ellipse 70% 90% at 5% 15%, hsla(0, 0%, 100%, 0.6), transparent 65%),
+						radial-gradient(ellipse 60% 80% at 95% 85%, hsl(var(--olive) / 0.4), transparent 70%),
+						radial-gradient(circle at 20% 40%, hsla(0, 0%, 100%, 0.3), transparent 45%),
+						radial-gradient(circle at 80% 60%, hsl(var(--olive) / 0.25), transparent 50%),
+						radial-gradient(ellipse 40% 60% at 60% 20%, hsla(0, 0%, 100%, 0.2), transparent 60%),
+						radial-gradient(ellipse 50% 40% at 30% 80%, hsl(var(--olive) / 0.15), transparent 55%),
+						linear-gradient(
+							135deg,
+							hsla(0, 0%, 100%, 0.15) 0%,
+							transparent 25%,
+							hsl(var(--olive) / 0.1) 45%,
+							transparent 65%,
+							hsla(0, 0%, 100%, 0.08) 85%,
+							transparent 100%
+						),
+						linear-gradient(
+							45deg,
+							transparent 0%,
+							hsla(0, 0%, 100%, 0.05) 20%,
+							transparent 40%,
+							hsl(var(--olive) / 0.06) 60%,
+							transparent 80%,
+							hsla(0, 0%, 100%, 0.04) 100%
+						);
+					animation: complexReflection 8s ease-in-out infinite;
 				}
+
+				@keyframes complexReflection {
+					0%,
+					100% {
+						opacity: 0.2;
+						transform: translateX(0%) rotate(0deg);
+					}
+					15% {
+						opacity: 0.28;
+						transform: translateX(0.5%) rotate(0.2deg);
+					}
+					30% {
+						opacity: 0.35;
+						transform: translateX(-0.3%) rotate(-0.1deg);
+					}
+					45% {
+						opacity: 0.32;
+						transform: translateX(0.8%) rotate(0.3deg);
+					}
+					60% {
+						opacity: 0.25;
+						transform: translateX(-0.6%) rotate(-0.2deg);
+					}
+					75% {
+						opacity: 0.3;
+						transform: translateX(0.2%) rotate(0.1deg);
+					}
+					90% {
+						opacity: 0.22;
+						transform: translateX(-0.1%) rotate(-0.05deg);
+					}
+				}
+
 				.plaque-float::after {
 					content: "";
 					position: absolute;
-					left: 10%;
-					right: 10%;
-					bottom: -18px;
-					height: 28px;
-					background: radial-gradient(closest-side, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
-					filter: blur(10px);
-					opacity: 0.55;
+					left: 15%;
+					right: 15%;
+					bottom: -20px;
+					height: 32px;
+					background: radial-gradient(closest-side, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+					filter: blur(12px);
+					opacity: 0.6;
 					z-index: -1;
 					pointer-events: none;
+					animation: shadowPulse 3s ease-in-out infinite;
 				}
+
+				@keyframes shadowPulse {
+					0%,
+					100% {
+						opacity: 0.6;
+						transform: scaleX(1);
+					}
+					50% {
+						opacity: 0.8;
+						transform: scaleX(1.1);
+					}
+				}
+
 				.header-plaque:hover {
-					transform: translateY(-2px);
+					transform: translateY(-4px);
+					background: linear-gradient(
+						135deg,
+						hsla(0, 0%, 100%, 0.22) 0%,
+						hsla(0, 0%, 100%, 0.1) 30%,
+						hsla(0, 0%, 100%, 0.16) 60%,
+						hsla(0, 0%, 100%, 0.2) 100%
+					);
+					backdrop-filter: saturate(250%) blur(38px) contrast(125%);
+
+					/* рамка и наводка приглушены */
+					border-color: hsla(0, 0%, 100%, 0.22); /* было 0.35 */
+
+					box-shadow:
+						0 16px 64px rgba(0, 0, 0, 0.8),
+						0 24px 120px rgba(0, 0, 0, 0.6),
+						0 8px 32px rgba(0, 0, 0, 0.4),
+						0 0 0 2px hsla(0, 0%, 100%, 0.22),
+						0 0 60px hsl(var(--olive) / 0.35),
+						0 0 120px hsl(var(--olive) / 0.18),
+						inset 0 3px 0 hsla(0, 0%, 100%, 0.28),
+						inset 0 -2px 0 hsla(0, 0%, 0%, 0.1),
+						inset 2px 0 0 hsla(0, 0%, 100%, 0.15),
+						inset -2px 0 0 hsla(0, 0%, 100%, 0.15);
+				}
+
+				/* Мобильная адаптация - тщательно проверено */
+				@media (max-width: 768px) {
+					.header-plaque {
+						background: linear-gradient(
+							135deg,
+							hsla(0, 0%, 100%, 0.18) 0%,
+							hsla(0, 0%, 100%, 0.08) 30%,
+							hsla(0, 0%, 100%, 0.12) 60%,
+							hsla(0, 0%, 100%, 0.14) 100%
+						);
+						backdrop-filter: saturate(190%) blur(28px) contrast(112%);
+						border: 1px solid hsla(0, 0%, 100%, 0.12);
+						box-shadow:
+							0 6px 24px rgba(0, 0, 0, 0.6),
+							0 12px 50px rgba(0, 0, 0, 0.4),
+							inset 0 1px 0 hsla(0, 0%, 100%, 0.2),
+							inset 0 -1px 0 hsla(0, 0%, 0%, 0.1);
+					}
+
+					.header-plaque::before {
+						inset: -1px;
+						padding: 1px;
+						opacity: 0.12; /* ↓ слабее кант на мобиле */
+						background: linear-gradient(
+							135deg,
+							hsla(0, 0%, 100%, 0.4) 0%,
+							hsl(var(--olive) / 0.5) 25%,
+							hsla(0, 0%, 100%, 0.25) 50%,
+							hsl(var(--olive) / 0.4) 75%,
+							hsla(0, 0%, 100%, 0.32) 100%
+						);
+						animation-duration: 4s;
+						filter: blur(0.3px);
+					}
+
+					.header-plaque::after {
+						opacity: 0.15;
+						background: radial-gradient(ellipse 60% 80% at 10% 20%, hsla(0, 0%, 100%, 0.5), transparent 65%),
+							radial-gradient(ellipse 50% 60% at 90% 80%, hsl(var(--olive) / 0.3), transparent 60%),
+							radial-gradient(circle at 30% 50%, hsla(0, 0%, 100%, 0.25), transparent 50%),
+							linear-gradient(
+								135deg,
+								hsla(0, 0%, 100%, 0.12) 0%,
+								transparent 30%,
+								hsl(var(--olive) / 0.08) 60%,
+								transparent 100%
+							);
+						animation-duration: 6s;
+					}
+
+					.header-plaque:hover {
+						transform: translateY(-2px);
+						background: linear-gradient(
+							135deg,
+							hsla(0, 0%, 100%, 0.2) 0%,
+							hsla(0, 0%, 100%, 0.08) 30%,
+							hsla(0, 0%, 100%, 0.12) 60%,
+							hsla(0, 0%, 100%, 0.15) 100%
+						);
+						backdrop-filter: saturate(200%) blur(30px) contrast(115%);
+						box-shadow:
+							0 10px 40px rgba(0, 0, 0, 0.7),
+							0 16px 70px rgba(0, 0, 0, 0.5),
+							0 0 40px hsl(var(--olive) / 0.3),
+							inset 0 2px 0 hsla(0, 0%, 100%, 0.22);
+					}
+				}
+
+				@media (max-width: 640px) {
+					.header-plaque {
+						width: calc(100vw - 8px) !important;
+						background: linear-gradient(
+							135deg,
+							hsla(0, 0%, 100%, 0.16) 0%,
+							hsla(0, 0%, 100%, 0.06) 30%,
+							hsla(0, 0%, 100%, 0.1) 60%,
+							hsla(0, 0%, 100%, 0.12) 100%
+						);
+						backdrop-filter: saturate(170%) blur(24px) contrast(108%);
+						border: 0.5px solid hsla(0, 0%, 100%, 0.11);
+						box-shadow:
+							0 4px 16px rgba(0, 0, 0, 0.5),
+							0 8px 32px rgba(0, 0, 0, 0.3),
+							inset 0 1px 0 hsla(0, 0%, 100%, 0.15);
+					}
+
+					.plaque-float::after {
+						bottom: -12px;
+						height: 20px;
+						left: 25%;
+						right: 25%;
+					}
+				}
+
+				@media (max-width: 480px) {
+					.header-plaque {
+						width: calc(100vw - 4px) !important;
+						padding: 0 12px !important;
+						height: 44px !important;
+					}
 				}
 
 				/* На случай, если где-то в проекте ещё встречается font-nav — подстраховка */

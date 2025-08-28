@@ -1,45 +1,58 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import React from "react";
 
-export interface NavItem {
-	id: string;
-	label: string;
-}
+export type SectionNavMobileItem = { id: string; label: string };
 
-interface SectionNavMobileProps {
-	items: NavItem[];
-}
+export function SectionNavMobile({ items }: { items: SectionNavMobileItem[] }) {
+	const [active, setActive] = useState(items[0]?.id ?? "");
 
-export function SectionNavMobile({ items }: SectionNavMobileProps) {
+	useEffect(() => {
+		const io = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((e) => e.isIntersecting && setActive(e.target.id));
+			},
+			{ rootMargin: "-55% 0px -35% 0px", threshold: 0.01 },
+		);
+
+		items.forEach((it) => {
+			const el = document.getElementById(it.id);
+			if (el) io.observe(el);
+		});
+
+		return () => io.disconnect();
+	}, [items]);
+
+	const go = (id: string) => {
+		document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+	};
+
 	return (
-		<motion.div
-			className="pointer-events-none fixed left-0 right-0 z-50 mx-auto w-full max-w-sm px-5"
-			style={{ bottom: "max(env(safe-area-inset-bottom), 16px)" }}
-			initial={{ y: 100, opacity: 0 }}
-			animate={{ y: 0, opacity: 1 }}
-			exit={{ y: 100, opacity: 0 }}
-			transition={{
-				type: "spring",
-				stiffness: 300,
-				damping: 30,
-				opacity: { duration: 0.2 },
-			}}
-		>
-			<div className="flex items-center justify-center gap-2 rounded-full bg-black/40 px-3 py-1 backdrop-blur-md">
-				{items.map((item) => (
-					<button
-						key={item.id}
-						className="h-2 w-2 rounded-full bg-white/40 transition hover:bg-white"
-						aria-label={item.label}
-						onClick={() => {
-							const section = document.querySelector(`[data-section='${item.id}']`);
-							section?.scrollIntoView({ behavior: "smooth" });
-						}}
-					/>
-				))}
+		<nav className="fixed bottom-3 right-3 z-50">
+			<ul className="flex items-center gap-2 rounded-full bg-black/40 px-2 py-2 backdrop-blur">
+				{items.map((it) => {
+					const isActive = it.id === active;
+					return (
+						<li key={it.id}>
+							<motion.button
+								onClick={() => go(it.id)}
+								aria-label={it.label}
+								aria-current={isActive}
+								className={`h-3.5 w-3.5 rounded-full ring-1 ring-white/40 ${
+									isActive ? "bg-white" : "bg-white/50"
+								}`}
+								whileTap={{ scale: 0.9 }}
+								whileHover={{ scale: 1.1 }}
+								transition={{ duration: 0.16 }}
+							/>
+						</li>
+					);
+				})}
+			</ul>
+			<div className="mt-1 text-center text-[10px] text-white/60">
+				{items.length > 0 ? "1–" + items.length : ""}
 			</div>
-		</motion.div>
+		</nav>
 	);
 }
