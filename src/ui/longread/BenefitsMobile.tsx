@@ -15,6 +15,7 @@ const items = [
 export function BenefitsMobile() {
 	const ref = useRef<HTMLElement>(null);
 	const progress = useMotionValue(0);
+	const SPARK_DURATION = 5.2;
 
 	// «Искра» идёт сверху вниз, пока секция в зоне видимости
 	// внутри BenefitsMobile.tsx
@@ -28,7 +29,7 @@ export function BenefitsMobile() {
 				entries.forEach((e) => {
 					if (e.isIntersecting && !started) {
 						started = true;
-						const controls = animate(progress, 1, { duration: 3.2, ease: [0.22, 1, 0.36, 1] });
+						const controls = animate(progress, 1, { duration: SPARK_DURATION, ease: [0.22, 1, 0.36, 1] });
 						// важно: остановить на размонтировании
 						cleanup = () => controls.stop();
 					}

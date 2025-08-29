@@ -62,7 +62,7 @@ export function BenefitsDesktop() {
 	const ref = useRef<HTMLDivElement>(null);
 	const inView = useInView(ref, { amount: 0.35, once: true });
 
-	const FUSE_DURATION = 3.6;
+	const FUSE_DURATION = 5.2;
 	const progress = useMotionValue(0);
 
 	useEffect(() => {

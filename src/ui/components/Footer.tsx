@@ -1,4 +1,3 @@
-// src/ui/components/Footer.tsx
 "use client";
 
 import Link from "next/link";
@@ -79,10 +78,10 @@ export function Footer({ channel }: FooterProps) {
 
 	return (
 		<footer data-channel={channel} className="border-t border-white/10 bg-neutral-950 text-neutral-300">
-			<div className="mx-auto max-w-7xl px-6 py-16">
-				<div className="grid grid-cols-1 gap-12 md:grid-cols-12">
+			<div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
+				<div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
 					{/* 4/12: бренд + рассылка */}
-					<div className="space-y-8 md:col-span-4">
+					<div className="space-y-6 md:col-span-4 md:space-y-8">
 						<div className="space-y-3">
 							<Link
 								href="/"
@@ -91,7 +90,7 @@ export function Footer({ channel }: FooterProps) {
 							>
 								GRAYCARDINAL
 							</Link>
-							<p className="max-w-md text-sm leading-relaxed text-neutral-400">
+							<p className="max-w-md text-xs leading-relaxed text-neutral-400 md:text-sm">
 								Без компромиссов. Контроль и выносливость.{" "}
 								<span className="font-medium text-neutral-200">Для несокрушимых.</span>
 							</p>
@@ -99,13 +98,13 @@ export function Footer({ channel }: FooterProps) {
 
 						{/* Канал связи (подписка) */}
 						<div className="space-y-2">
-							<div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-widest text-neutral-300">
+							<div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-widest text-neutral-300 md:text-[11px]">
 								<span className="h-2 w-2 rounded-full bg-neutral-200" />
 								Канал связи
 							</div>
 
 							<form onSubmit={submit} className="space-y-2" noValidate>
-								<div className="flex max-w-sm gap-2">
+								<div className="flex max-w-sm flex-col gap-2 md:flex-row">
 									<label htmlFor="relay" className="sr-only">
 										Эл. почта
 									</label>
@@ -148,12 +147,12 @@ export function Footer({ channel }: FooterProps) {
 								</span>
 							</div>
 							<nav className="pt-4 md:pt-6">
-								<ul className="space-y-3">
+								<ul className="space-y-2 md:space-y-3">
 									{s.links.map((l) => (
 										<li key={l.href}>
 											<Link
 												href={l.href}
-												className="text-sm text-neutral-400 transition hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-400"
+												className="text-xs text-neutral-400 transition hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-400 md:text-sm"
 											>
 												{l.label}
 											</Link>
@@ -166,16 +165,16 @@ export function Footer({ channel }: FooterProps) {
 				</div>
 
 				{/* Нижняя полоса */}
-				<div className="mt-14 border-t border-white/10 pt-6">
-					<div className="flex flex-col items-center gap-6 md:flex-row md:justify-between">
+				<div className="mt-10 border-t border-white/10 pt-4 md:mt-14 md:pt-6">
+					<div className="flex flex-col items-center gap-4 md:flex-row md:justify-between md:gap-6">
 						{/* Юридическое меню слева */}
 						<nav aria-label="Юридическая информация" className="order-2 w-full md:order-1 md:w-auto">
-							<ul className="flex flex-wrap items-center gap-x-6 gap-y-2">
+							<ul className="flex flex-col items-center gap-y-2 md:flex-row md:gap-x-6 md:gap-y-0">
 								{LEGAL.map((l) => (
 									<li key={l.href}>
 										<Link
 											href={l.href}
-											className="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-400"
+											className="text-[10px] uppercase tracking-widest text-neutral-500 hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-400 md:text-[11px]"
 										>
 											{l.label}
 										</Link>
@@ -192,7 +191,7 @@ export function Footer({ channel }: FooterProps) {
 								aria-label="Telegram"
 								className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-400"
 							>
-								<SiTelegram className="h-5 w-5" />
+								<SiTelegram className="h-4 w-4 md:h-5 md:w-5" />
 							</Link>
 							<Link
 								href="https://vk.com/your_group"
@@ -200,7 +199,7 @@ export function Footer({ channel }: FooterProps) {
 								aria-label="VK"
 								className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-400"
 							>
-								<SiVk className="h-5 w-5" />
+								<SiVk className="h-4 w-4 md:h-5 md:w-5" />
 							</Link>
 
 							<span className="mx-2 h-4 w-px bg-white/10" aria-hidden="true" />
@@ -217,7 +216,7 @@ export function Footer({ channel }: FooterProps) {
 						</div>
 
 						{/* Копирайт справа */}
-						<p className="order-3 text-[11px] uppercase tracking-[0.18em] text-neutral-500 md:order-3">
+						<p className="order-3 text-[10px] uppercase tracking-[0.18em] text-neutral-500 md:order-3 md:text-[11px]">
 							© {year} GRAYCARDINAL — Unyielding.
 						</p>
 					</div>
