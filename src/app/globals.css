@@ -727,3 +727,50 @@ body {
 .site-header {
 	overflow: hidden;
 }
+/* Мобильный режим: пока активен лонгрид, скрываем любой верхний хедер/топбар */
+@media (max-width: 1023px) {
+	:root[data-longread-active="true"]
+		:is(
+			header,
+			nav,
+			.site-header,
+			[role="banner"],
+			[data-ui="app-header"],
+			[class*="header"],
+			[class*="Header"],
+			[class*="navbar"],
+			[class*="Navbar"],
+			[class*="topbar"],
+			[class*="Topbar"]
+		) {
+		display: none !important;
+	}
+
+	/* если кто-то рисует стеклянную капсулу отдельным слоем */
+	:root[data-longread-active="true"]
+		:is(
+			[class*="glass"],
+			[class*="Glass"],
+			[class*="pill"],
+			[class*="Pill"],
+			[class*="capsule"],
+			[class*="Capsule"]
+		) {
+		display: none !important;
+	}
+
+	/* на всякий случай: любые фиксированные элементы в самом верху */
+	:root[data-longread-active="true"] * {
+		/* если элемент фиксирован в верхней части — «успокоить» */
+		--_pos: static;
+	}
+	:root[data-longread-active="true"] *[style*="position:fixed"],
+	:root[data-longread-active="true"] *[style*="position: sticky"] {
+		top: auto !important;
+	}
+}
+
+/* безопасная высота для sticky заголовка главы */
+.longread-sticky {
+	top: calc(env(safe-area-inset-top, 0px) + 18px);
+}

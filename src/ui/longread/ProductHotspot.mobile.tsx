@@ -8,13 +8,14 @@ import clsx from "clsx";
 type Side = "left" | "right" | "top" | "bottom";
 
 export interface ProductHotspotMobileProps {
-	x: number; // проценты (0..100)
-	y: number; // проценты (0..100)
+	x: number; // 0..100
+	y: number; // 0..100
 	label: string;
 	href: string;
 	side?: Side;
-	progress?: MotionValue<number>; // 0..1
-	appearAt?: number; // 0..1
+	progress?: MotionValue<number>;
+	appearAt?: number;
+	visible?: boolean; // управляем появлением слайда напрямую
 }
 
 export function ProductHotspotMobile({
@@ -25,12 +26,16 @@ export function ProductHotspotMobile({
 	side = "right",
 	progress,
 	appearAt = 0,
+	visible,
 }: ProductHotspotMobileProps) {
 	const [open, setOpen] = useState(false);
-	const fallback = useMotionValue(1);
-	const src = progress ?? fallback;
 
-	const opacity = useTransform<number, number>(src, [appearAt, Math.min(1, appearAt + 0.12)], [0, 1]);
+	// ❗ хуки вызываем всегда (без условий)
+	const fallback = useMotionValue(1);
+	const src: MotionValue<number> = progress ?? fallback;
+	const motionOpacity = useTransform(src, [appearAt, Math.min(1, appearAt + 0.12)], [0, 1]);
+
+	const isControlled = typeof visible === "boolean";
 
 	const tooltipDirCls =
 		side === "left" ? "right-10" : side === "top" ? "bottom-10" : side === "bottom" ? "top-10" : "left-10";
@@ -38,7 +43,14 @@ export function ProductHotspotMobile({
 	return (
 		<motion.div
 			className="absolute z-30"
-			style={{ left: `${x}%`, top: `${y}%`, transform: "translate(-50%, -50%)", opacity }}
+			style={{
+				left: `${x}%`,
+				top: `${y}%`,
+				transform: "translate(-50%, -50%)",
+				opacity: isControlled ? undefined : motionOpacity,
+			}}
+			initial={false}
+			animate={isControlled ? { opacity: visible ? 1 : 0 } : undefined}
 		>
 			<button
 				type="button"

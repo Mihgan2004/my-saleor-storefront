@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SectionNav } from "./SectionNav"; // desktop
+import { SectionNav } from "./SectionNav";
 import { UndergroundDesktop } from "./UndergroundDesktop";
 import { ArenaDesktop } from "./ArenaDesktop";
 import { RangeDesktop } from "./RangeDesktop";
@@ -16,8 +16,6 @@ import { useLongreadHeaderHandoff } from "./useLongreadHeaderHandoff";
 
 export function Longread() {
 	const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
-
-	// ❗ вызываем ХУК безусловно (не внутри if)
 	const { ref: longreadRef } = useLongreadHeaderHandoff();
 
 	useEffect(() => {
@@ -39,7 +37,7 @@ export function Longread() {
 		];
 
 		return (
-			<div ref={longreadRef} className="snap-y">
+			<div ref={longreadRef} className="snap-y snap-proximity">
 				<UndergroundMobile />
 				<ArenaMobile />
 				<RangeMobile />
