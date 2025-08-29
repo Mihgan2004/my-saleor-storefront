@@ -1,11 +1,17 @@
-// FILE: src/ui/longread/Longread.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { SectionNav } from "./SectionNav"; // desktop
+import { SectionNav } from "./SectionNav"; // навигация для десктопа
 import { UndergroundDesktop } from "./UndergroundDesktop";
 import { ArenaDesktop } from "./ArenaDesktop";
 import { RangeDesktop } from "./RangeDesktop";
+import { BenefitsDesktop } from "./BenefitsDesktop";
+
+// мобильные версии секций
+import { UndergroundMobile } from "./UndergroundMobile";
+import { ArenaMobile } from "./ArenaMobile";
+import { RangeMobile } from "./RangeMobile";
+import { BenefitsMobile } from "./BenefitsMobile";
 
 export function Longread() {
 	const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
@@ -13,24 +19,35 @@ export function Longread() {
 	useEffect(() => {
 		const mq = window.matchMedia("(min-width: 1024px)");
 		const onChange = () => setIsDesktop(mq.matches);
-		onChange(); // первичная установка
+		onChange(); // начальное состояние
 		mq.addEventListener("change", onChange);
 		return () => mq.removeEventListener("change", onChange);
 	}, []);
 
-	// SSR и первый клиентский тик — ничего не рендерим, чтобы избежать рассинхрона
+	// первый рендер (SSR) — ничего не выводим
 	if (isDesktop === null) return null;
 
-	// Мобильные/планшеты < 1024px — лонгрид полностью выключен
-	if (!isDesktop) return null;
+	// мобильные и планшеты: отображаем мобильные секции
+	if (!isDesktop) {
+		return (
+			<>
+				<UndergroundMobile />
+				<ArenaMobile />
+				<RangeMobile />
+				{/* мобильный блок с преимуществами */}
+				<BenefitsMobile />
+			</>
+		);
+	}
 
-	// Десктоп — как было
+	// десктоп: показываем навигацию и sticky‑сцены
 	return (
 		<>
 			<SectionNav />
 			<UndergroundDesktop />
 			<ArenaDesktop />
 			<RangeDesktop />
+			<BenefitsDesktop />
 		</>
 	);
 }

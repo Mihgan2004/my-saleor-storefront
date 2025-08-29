@@ -2,7 +2,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Tektur, JetBrains_Mono } from "next/font/google";
 import Header from "@/ui/components/Header";
-import { Footer } from "@/ui/components/Footer";
 import "./globals.css";
 
 /* =========================
@@ -206,7 +205,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
 					<main id="main-content" className="relative z-base flex-1">
 						{children}
 					</main>
-					<Footer channel={CHANNEL} />
 				</div>
 
 				{/* Performance / Preload helper script */}
