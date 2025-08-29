@@ -1,3 +1,4 @@
+// FILE: src/ui/longread/RangeMobile.tsx
 "use client";
 
 import Image from "next/image";
@@ -13,18 +14,28 @@ export function RangeMobile() {
 	const yMid = useTransform(progress, [0, 1], ["-3%", "3%"]);
 	const yFast = useTransform(progress, [0, 1], ["-4%", "4%"]);
 
+	const titleOpacity = useTransform(progress, [0.06, 0.18], [0, 1]);
+	const copyOpacity = useTransform(progress, [0.12, 0.28], [0, 1]);
+
 	return (
-		<section id="range" ref={ref} className="bg-black text-white" style={{ contain: "layout paint style" }}>
+		<section
+			id="range"
+			ref={ref}
+			className="snap-start bg-black text-white"
+			style={{ contain: "layout paint style" }}
+		>
 			<div className="mx-auto max-w-7xl px-4 py-12">
-				<h2 className="text-3xl font-black leading-tight">ГОТОВ К ПОЛЮ</h2>
-				<p className="mt-2 max-w-prose text-white/85">
+				<motion.h2 className="text-3xl font-black leading-tight" style={{ opacity: titleOpacity }}>
+					ГОТОВ К ПОЛЮ
+				</motion.h2>
+				<motion.p className="mt-2 max-w-prose text-white/85" style={{ opacity: copyOpacity }}>
 					Функция первична. Материалы — выносливые, посадка — рабочая, эстетика — строгая.
-				</p>
-				<ul className="mt-4 space-y-2 text-white/80">
+				</motion.p>
+				<motion.ul className="mt-4 space-y-2 text-white/80" style={{ opacity: copyOpacity }}>
 					<li>• защита от износа и погоды</li>
 					<li>• модульность и крепления</li>
 					<li>• тёмная палитра ради фокуса</li>
-				</ul>
+				</motion.ul>
 
 				<div className="mt-6">
 					<Frame className="relative aspect-[4/5] w-full" overlayClassName="bg-lime-500/5">
@@ -61,7 +72,7 @@ export function RangeMobile() {
 							</motion.figure>
 						</div>
 
-						{/* хотспоты – появляются ближе к низу секции */}
+						{/* хотспоты: появляются ближе к низу сцены */}
 						<ProductHotspotMobile
 							x={30}
 							y={42}
