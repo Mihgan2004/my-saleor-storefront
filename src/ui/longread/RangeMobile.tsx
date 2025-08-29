@@ -8,20 +8,15 @@ export function RangeMobile() {
 			tone="olive"
 			kicker="MILITARY"
 			title="ГОТОВ К ПОЛЮ"
-			lead="Функция первична. Материалы — выносливые, посадка — рабочая, эстетика — строгая."
-			bullets={["защита от износа и погоды", "модульность и крепления", "тёмная палитра ради фокуса"]}
 			slides={[
 				{
-					src: "/images/longread/range-1.avif",
-					alt: "Петлевая панель",
-					hotspots: [{ x: 30, y: 42, label: "Панель под ярлык", href: "/products/loop-panel" }],
-				},
-				{
+					type: "image",
 					src: "/images/longread/range-2.avif",
 					alt: "Ламинированный шов",
 					hotspots: [{ x: 70, y: 30, label: "Влагозащитная молния", href: "/products/sealed-zip" }],
 				},
 				{
+					type: "image",
 					src: "/images/longread/range-3.avif",
 					alt: "Усиленный бар-так",
 					hotspots: [

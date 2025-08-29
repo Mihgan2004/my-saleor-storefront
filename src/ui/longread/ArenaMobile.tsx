@@ -8,14 +8,9 @@ export function ArenaMobile() {
 			tone="blue"
 			kicker="SPORT"
 			title="MOVEMENT = LIFE"
-			lead="Скорость — в основе ДНК коллекции."
-			bullets={[
-				"эргономичный крой без лишних складок",
-				"лёгкие износостойкие ткани",
-				"продуваемость и отвод влаги",
-			]}
 			slides={[
 				{
+					type: "image",
 					src: "/images/longread/arena-1.avif",
 					alt: "Динамика: бег в городе",
 					hotspots: [
@@ -24,6 +19,7 @@ export function ArenaMobile() {
 					],
 				},
 				{
+					type: "image",
 					src: "/images/longread/arena-2.avif",
 					alt: "Силуэт: тренировочная зона",
 					hotspots: [
@@ -35,14 +31,6 @@ export function ArenaMobile() {
 							href: "/products/elastic-waist",
 							side: "left" as const,
 						},
-					],
-				},
-				{
-					src: "/images/longread/arena-3.avif",
-					alt: "Контраст: взрыв скорости",
-					hotspots: [
-						{ x: 54, y: 28, label: "DWR-пропитка", href: "/products/dwr" },
-						{ x: 78, y: 70, label: "Молния YKK", href: "/products/ykk-zip" },
 					],
 				},
 			]}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SectionNav } from "./SectionNav"; // десктоп
+import { SectionNav } from "./SectionNav"; // desktop
 import { UndergroundDesktop } from "./UndergroundDesktop";
 import { ArenaDesktop } from "./ArenaDesktop";
 import { RangeDesktop } from "./RangeDesktop";
@@ -12,9 +12,13 @@ import { ArenaMobile } from "./ArenaMobile";
 import { RangeMobile } from "./RangeMobile";
 import { BenefitsMobile } from "./BenefitsMobile";
 import { SectionNavMobile } from "./SectionNavMobile";
+import { useLongreadHeaderHandoff } from "./useLongreadHeaderHandoff";
 
 export function Longread() {
 	const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+
+	// ❗ вызываем ХУК безусловно (не внутри if)
+	const { ref: longreadRef } = useLongreadHeaderHandoff();
 
 	useEffect(() => {
 		const mq = window.matchMedia("(min-width: 1024px)");
@@ -33,8 +37,9 @@ export function Longread() {
 			{ id: "range", label: "Tactical" },
 			{ id: "why", label: "Почему" },
 		];
+
 		return (
-			<div className="snap-y">
+			<div ref={longreadRef} className="snap-y">
 				<UndergroundMobile />
 				<ArenaMobile />
 				<RangeMobile />
