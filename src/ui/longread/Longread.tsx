@@ -1,12 +1,12 @@
-// FILE: src/ui/longread/Longread.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { SectionNav } from "./SectionNav";
+import { SectionNav } from "./SectionNav"; // десктоп
 import { UndergroundDesktop } from "./UndergroundDesktop";
 import { ArenaDesktop } from "./ArenaDesktop";
 import { RangeDesktop } from "./RangeDesktop";
 import { BenefitsDesktop } from "./BenefitsDesktop";
+
 import { UndergroundMobile } from "./UndergroundMobile";
 import { ArenaMobile } from "./ArenaMobile";
 import { RangeMobile } from "./RangeMobile";
@@ -27,26 +27,20 @@ export function Longread() {
 	if (isDesktop === null) return null;
 
 	if (!isDesktop) {
-		const mobileNavItems = [
+		const items = [
 			{ id: "underground", label: "Underground" },
 			{ id: "arena", label: "Arena" },
 			{ id: "range", label: "Tactical" },
 			{ id: "why", label: "Почему" },
 		];
-
 		return (
-			<>
-				{/* snap для мобилки */}
-				<main className="snap-y">
-					<UndergroundMobile />
-					<ArenaMobile />
-					<RangeMobile />
-					<BenefitsMobile />
-				</main>
-
-				{/* нижняя «пилюля» навигации */}
-				<SectionNavMobile items={mobileNavItems} />
-			</>
+			<div className="snap-y">
+				<UndergroundMobile />
+				<ArenaMobile />
+				<RangeMobile />
+				<BenefitsMobile />
+				<SectionNavMobile items={items} />
+			</div>
 		);
 	}
 
