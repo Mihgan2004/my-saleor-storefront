@@ -18,7 +18,6 @@ type ImageSlide = {
 
 type BgSlide = {
 	type: "bg";
-	/** Tailwind/utility классы для фона (градиент/текстура) */
 	bgClass: string;
 	hotspots?: Array<Omit<ProductHotspotMobileProps, "progress">>;
 };
@@ -30,7 +29,6 @@ interface ChapterMobileProps {
 	tone: Tone;
 	kicker: string;
 	title: string;
-	/** Без длинных текстов: держим лонгрид «визуальным». */
 	slides: Slide[];
 }
 
@@ -47,11 +45,11 @@ export function ChapterMobile({ id, tone, kicker, title, slides }: ChapterMobile
 		<section
 			id={id}
 			ref={ref}
-			className="snap-start bg-black pb-28 text-white" // запас под нижнюю навигацию
+			className="snap-start bg-black pb-28 text-white"
 			style={{ contain: "layout paint style" }}
 		>
-			{/* Sticky-заголовок главы, без длинного текста */}
-			<header className="longread-sticky sticky z-30 bg-gradient-to-b from-black/90 to-black/0 px-4 py-3 backdrop-blur">
+			{/* Sticky заголовок */}
+			<header className="longread-sticky sticky z-40 bg-gradient-to-b from-black/90 to-black/0 px-4 py-3 backdrop-blur">
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-1 flex items-center gap-2 text-[11px] tracking-widest text-white/60">
 						<span className="inline-block h-1.5 w-1.5 rounded-full bg-white/70" />
@@ -61,7 +59,8 @@ export function ChapterMobile({ id, tone, kicker, title, slides }: ChapterMobile
 				</div>
 			</header>
 
-			<div className="mx-auto max-w-7xl px-4 pt-3">
+			{/* ⬇️ увеличил отступ: было pt-3, стало pt-6 */}
+			<div className="mx-auto max-w-7xl px-4 pt-6">
 				<div className="space-y-8">
 					{slides.map((s, idx) => (
 						<article key={idx} className="grid gap-3">

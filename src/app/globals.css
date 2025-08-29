@@ -706,3 +706,24 @@ body {
 .site-header {
 	overflow: hidden;
 }
+/* Лишь на мобильных — прячем глобальный хедер, пока активен лонгрид */
+@media (max-width: 1023px) {
+	:root[data-longread-active="true"] .site-header,
+	:root[data-longread-active="true"] header[role="banner"],
+	:root[data-longread-active="true"] [data-ui="app-header"] {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		transform: translateY(-16px) !important;
+		pointer-events: none !important;
+	}
+}
+
+/* немного ниже приклеиваем заголовок главы (учтём системную панель) */
+.longread-sticky {
+	top: calc(env(safe-area-inset-top, 0px) + 18px);
+}
+
+/* защита от "стеклянной плашки", если у хедера есть backdrop-blur и тени */
+.site-header {
+	overflow: hidden;
+}
