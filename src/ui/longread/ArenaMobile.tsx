@@ -1,4 +1,4 @@
-// FILE: src/ui/longread/ArenaMobile.tsx
+// src/ui/longread/ArenaMobile.tsx
 "use client";
 
 import Image from "next/image";
@@ -6,124 +6,69 @@ import { motion, useTransform, type MotionValue } from "framer-motion";
 import { Frame } from "./Frame";
 import { ProductHotspotMobile } from "./ProductHotspot.mobile";
 import { useChapterProgressMobile } from "./StickyChapterMobile";
+import { FuseRail } from "./FuseRail";
 
-type Hotspot = { x: number; y: number; label: string; href: string; side?: "left" | "right" };
 type Slide = {
 	src: string;
 	alt: string;
 	lead: string;
 	bullets: string[];
-	hotspots: Hotspot[];
+	hotspots: Array<{ x: number; y: number; label: string; href: string; side?: "left" | "right" }>;
 };
 
 const slides: Slide[] = [
-	{
-		src: "/images/longread/arena-1.avif",
-		alt: "Динамика: бег в городе",
-		lead: "Скорость — в основе ДНК коллекции.",
-		bullets: [
-			"эргономичный крой без лишних складок",
-			"лёгкие износостойкие ткани",
-			"продуваемость и отвод влаги",
-		],
-		hotspots: [
-			{ x: 72, y: 34, label: "Дышащие панели", href: "/products/breathable-panels" },
-			{ x: 26, y: 66, label: "Усиленные зоны", href: "/products/reinforced", side: "left" },
-		],
-	},
-	{
-		src: "/images/longread/arena-2.avif",
-		alt: "Силуэт: тренировочная зона",
-		lead: "Контроль движения в каждом стежке.",
-		bullets: ["мягкие эластичные зоны", "усиления там, где нужно", "строгие линии без визуального шума"],
-		hotspots: [
-			{ x: 65, y: 40, label: "Световозврат", href: "/products/reflective-stitch" },
-			{ x: 42, y: 75, label: "Эластичный пояс", href: "/products/elastic-waist", side: "left" },
-		],
-	},
-	{
-		src: "/images/longread/arena-3.avif",
-		alt: "Контраст: взрыв скорости",
-		lead: "Создано для города и спорта.",
-		bullets: ["незаметные карманы", "световозврат для безопасности", "минимальная палитра для фокуса"],
-		hotspots: [
-			{ x: 54, y: 28, label: "DWR-пропитка", href: "/products/dwr" },
-			{ x: 78, y: 70, label: "Молния YKK", href: "/products/ykk-zip" },
-		],
-	},
+	/* как у тебя сейчас */
 ];
 
-/** Изображение-слайд: хуки только здесь (не в .map) */
-function SlideFigure({
-	slide,
-	progress,
-	start,
-	mid,
-	end,
-	priority,
-}: {
-	slide: Slide;
-	progress: MotionValue<number>;
-	start: number;
-	mid: number;
-	end: number;
-	priority?: boolean;
-}) {
-	const opacity = useTransform(progress, [start, mid, end], [0, 1, 0]);
-	const scale = useTransform(progress, [start, mid, end], [1.02, 1, 1.02]);
+function Beat({ s, i, seg, progress }: { s: Slide; i: number; seg: number; progress: MotionValue<number> }) {
+	const start = i * seg;
+	const mid = start + seg / 2;
+	const end = (i + 1) * seg;
+
+	const imgOpacity = useTransform(progress, [start, mid, end], [0, 1, 0]);
+	const imgScale = useTransform(progress, [start, mid, end], [1.02, 1, 1.02]);
+	const textOp = useTransform(progress, [start + seg * 0.15, mid], [0, 1]);
+	const textY = useTransform(progress, [start + seg * 0.15, mid], [8, 0]);
 
 	return (
-		<motion.figure className="absolute inset-0" style={{ opacity, scale }}>
-			<Image
-				src={slide.src}
-				alt={slide.alt}
-				fill
-				sizes="100vw"
-				className="object-cover object-center"
-				priority={priority}
-			/>
-			{slide.hotspots.map((h, i) => (
-				<ProductHotspotMobile
-					key={`${slide.src}-hs-${i}`}
-					x={h.x}
-					y={h.y}
-					label={h.label}
-					href={h.href}
-					side={h.side}
-					progress={opacity}
-					appearAt={0.55}
-				/>
-			))}
-		</motion.figure>
-	);
-}
+		<div className="relative">
+			<Frame className="gpu relative aspect-[4/5] w-full">
+				<motion.figure className="absolute inset-0" style={{ opacity: imgOpacity, scale: imgScale }}>
+					<Image
+						src={s.src}
+						alt={s.alt}
+						fill
+						sizes="100vw"
+						className="object-cover object-center"
+						priority={i === 0}
+					/>
+				</motion.figure>
 
-/** Текст-слайд: хуки только здесь (не в .map) */
-function SlideText({
-	slide,
-	progress,
-	start,
-	mid,
-	end,
-}: {
-	slide: Slide;
-	progress: MotionValue<number>;
-	start: number;
-	mid: number;
-	end: number;
-}) {
-	const opacity = useTransform(progress, [start, mid, end], [0, 1, 0]);
-	const y = useTransform(progress, [start, mid, end], [8, 0, -8]);
-
-	return (
-		<motion.div className="absolute inset-0" style={{ opacity, y }}>
-			<p className="text-white/85">{slide.lead}</p>
-			<ul className="mt-4 space-y-2 text-white/80">
-				{slide.bullets.map((b) => (
-					<li key={b}>• {b}</li>
+				{/* хотспоты появляются вместе с кадром */}
+				{s.hotspots.map((h, idx) => (
+					<ProductHotspotMobile
+						key={idx}
+						x={h.x}
+						y={h.y}
+						label={h.label}
+						href={h.href}
+						side={h.side}
+						progress={imgOpacity}
+						appearAt={0.55}
+					/>
 				))}
-			</ul>
-		</motion.div>
+			</Frame>
+
+			{/* текстовый блок */}
+			<motion.div className="mt-3" style={{ opacity: textOp, y: textY }}>
+				<p className="text-white/85">{s.lead}</p>
+				<ul className="mt-3 space-y-2 text-white/80">
+					{s.bullets.map((b) => (
+						<li key={b}>• {b}</li>
+					))}
+				</ul>
+			</motion.div>
+		</div>
 	);
 }
 
@@ -138,48 +83,16 @@ export function ArenaMobile() {
 			className="snap-start bg-black text-white"
 			style={{ contain: "layout paint style" }}
 		>
-			<div className="mx-auto max-w-7xl px-4 py-12">
+			<div className="relative mx-auto max-w-7xl px-4 py-12">
 				<h2 className="text-3xl font-black leading-tight">MOVEMENT = LIFE</h2>
 
-				<div className="relative mt-4">
-					{/* Кадры */}
-					<Frame className="relative aspect-[4/5] w-full">
-						{slides.map((slide, i) => {
-							const start = Math.max(0, i * seg - 0.06);
-							const mid = i * seg + seg / 2;
-							const end = Math.min(1, (i + 1) * seg + 0.06);
-							return (
-								<SlideFigure
-									key={`fig-${slide.src}`}
-									slide={slide}
-									progress={progress}
-									start={start}
-									mid={mid}
-									end={end}
-									priority={i === 0}
-								/>
-							);
-						})}
-					</Frame>
+				{/* Fuse rail слева — общий язык секций */}
+				<FuseRail progress={progress} />
 
-					{/* Текстовые состояния */}
-					<div className="relative mt-5 min-h-[150px]">
-						{slides.map((slide, i) => {
-							const start = Math.max(0, i * seg - 0.04);
-							const mid = i * seg + seg / 2;
-							const end = Math.min(1, (i + 1) * seg + 0.04);
-							return (
-								<SlideText
-									key={`txt-${slide.src}`}
-									slide={slide}
-									progress={progress}
-									start={start}
-									mid={mid}
-									end={end}
-								/>
-							);
-						})}
-					</div>
+				<div className="mt-4 space-y-10">
+					{slides.map((s, i) => (
+						<Beat key={s.src} s={s} i={i} seg={seg} progress={progress} />
+					))}
 				</div>
 			</div>
 		</section>

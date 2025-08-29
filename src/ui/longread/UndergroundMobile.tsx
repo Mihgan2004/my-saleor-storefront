@@ -2,21 +2,112 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useTransform } from "framer-motion";
+import { motion, useTransform, type MotionValue } from "framer-motion";
 import { Frame } from "./Frame";
 import { ProductHotspotMobile } from "./ProductHotspot.mobile";
 import { useChapterProgressMobile } from "./StickyChapterMobile";
+import { FuseRail } from "./FuseRail";
+
+type Beat = {
+	src: string;
+	alt: string;
+	copyTitle: string;
+	copyText: string;
+	hotspots: Array<{ x: number; y: number; label: string; href: string; side?: "left" | "right" }>;
+};
+
+const beats: Beat[] = [
+	{
+		src: "/images/longread/underground-1.avif",
+		alt: "Silhouette by neon portal",
+		copyTitle: "NOT FOR EVERYONE",
+		copyText: "Noise of asphalt, silence of rules. We choose our own path.",
+		hotspots: [{ x: 28, y: 36, label: "Светоотражающие акценты", href: "/products/reflect" }],
+	},
+	{
+		src: "/images/longread/underground-2.avif",
+		alt: "Neon clothing details",
+		copyTitle: "NEON // DETAILS",
+		copyText: "Контрастные акценты, светоотражение, защита от дождя.",
+		hotspots: [{ x: 66, y: 58, label: "Влагозащита", href: "/products/waterproof" }],
+	},
+];
+
+function UGImage({
+	beat,
+	i,
+	seg,
+	progress,
+	priority,
+}: {
+	beat: Beat;
+	i: number;
+	seg: number;
+	progress: MotionValue<number>;
+	priority?: boolean;
+}) {
+	const start = i * seg,
+		mid = start + seg / 2,
+		end = (i + 1) * seg;
+	const opacity = useTransform(progress, [start, mid, end], [0, 1, 0]);
+	const scale = useTransform(progress, [start, mid, end], [1.02, 1, 1.02]);
+
+	return (
+		<>
+			<motion.figure className="absolute inset-0" style={{ opacity, scale }}>
+				<Image
+					src={beat.src}
+					alt={beat.alt}
+					fill
+					sizes="100vw"
+					className="object-cover object-center"
+					priority={priority}
+				/>
+			</motion.figure>
+			{beat.hotspots.map((h, idx) => (
+				<ProductHotspotMobile
+					key={`${beat.src}-hs-${idx}`}
+					x={h.x}
+					y={h.y}
+					label={h.label}
+					href={h.href}
+					side={h.side}
+					progress={opacity}
+					appearAt={0.35}
+				/>
+			))}
+		</>
+	);
+}
+
+function UGCopy({
+	beat,
+	i,
+	seg,
+	progress,
+}: {
+	beat: Beat;
+	i: number;
+	seg: number;
+	progress: MotionValue<number>;
+}) {
+	const start = i * seg;
+	const mid = start + seg / 2;
+
+	const opacity = useTransform(progress, [start + seg * 0.12, mid], [0, 1]);
+	const y = useTransform(progress, [start + seg * 0.12, mid], [8, 0]);
+
+	return (
+		<motion.div className="absolute inset-0" style={{ opacity, y }}>
+			<h3 className="text-3xl font-black leading-tight">{beat.copyTitle}</h3>
+			<p className="mt-2 text-white/80">{beat.copyText}</p>
+		</motion.div>
+	);
+}
 
 export function UndergroundMobile() {
 	const { ref, progress } = useChapterProgressMobile<HTMLElement>();
-
-	// 0..1: A -> B
-	const fadeA = useTransform(progress, [0.0, 0.35, 0.55], [1, 1, 0]);
-	const fadeB = useTransform(progress, [0.35, 0.55, 1.0], [0, 1, 1]);
-
-	// этапный текст
-	const leadAOpacity = useTransform(progress, [0.02, 0.18], [0, 1]);
-	const leadBOpacity = useTransform(progress, [0.58, 0.8], [0, 1]);
+	const seg = 1 / beats.length;
 
 	return (
 		<section
@@ -25,67 +116,21 @@ export function UndergroundMobile() {
 			className="snap-start bg-black text-white"
 			style={{ contain: "layout paint style" }}
 		>
-			<div className="mx-auto max-w-7xl px-4 py-12">
-				{/* тексты — меняются в такт кадрам */}
-				<div className="min-h-[76px]">
-					<motion.h2 className="text-3xl font-black leading-tight" style={{ opacity: leadAOpacity }}>
-						NOT FOR EVERYONE
-					</motion.h2>
+			<div className="relative mx-auto max-w-7xl px-4 py-12">
+				<FuseRail progress={progress} />
 
-					<motion.p className="mt-2 text-white/80" style={{ opacity: leadAOpacity }}>
-						Noise of asphalt, silence of rules. We choose our own path.
-					</motion.p>
-
-					<motion.h3 className="mt-1 text-2xl font-black leading-tight" style={{ opacity: leadBOpacity }}>
-						NEON // DETAILS
-					</motion.h3>
-					<motion.p className="mt-2 text-white/80" style={{ opacity: leadBOpacity }}>
-						Контрастные акценты, светоотражение, защита от дождя.
-					</motion.p>
+				{/* копи-область с посменной подстановкой */}
+				<div className="relative min-h-[86px]">
+					{beats.map((b, i) => (
+						<UGCopy key={`copy-${i}`} beat={b} i={i} seg={seg} progress={progress} />
+					))}
 				</div>
 
 				<div className="mt-6">
-					<Frame className="relative aspect-[4/5] w-full">
-						{/* Кадр A */}
-						<motion.figure className="absolute inset-0" style={{ opacity: fadeA }}>
-							<Image
-								src="/images/longread/underground-1.avif"
-								alt="Silhouette by neon portal"
-								fill
-								sizes="100vw"
-								className="object-cover object-center"
-								priority
-							/>
-						</motion.figure>
-
-						{/* Кадр B */}
-						<motion.figure className="absolute inset-0" style={{ opacity: fadeB }}>
-							<Image
-								src="/images/longread/underground-2.avif"
-								alt="Neon clothing details"
-								fill
-								sizes="100vw"
-								className="object-cover object-center"
-							/>
-						</motion.figure>
-
-						{/* хотспоты завязаны на прогресс каждого кадра */}
-						<ProductHotspotMobile
-							x={28}
-							y={36}
-							label="Светоотражающие акценты"
-							href="/products/reflect"
-							progress={fadeA}
-							appearAt={0.18}
-						/>
-						<ProductHotspotMobile
-							x={66}
-							y={58}
-							label="Влагозащита"
-							href="/products/waterproof"
-							progress={fadeB}
-							appearAt={0.2}
-						/>
+					<Frame className="gpu relative aspect-[4/5] w-full">
+						{beats.map((b, i) => (
+							<UGImage key={`img-${i}`} beat={b} i={i} seg={seg} progress={progress} priority={i === 0} />
+						))}
 					</Frame>
 				</div>
 			</div>
