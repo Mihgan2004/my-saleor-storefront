@@ -1,8 +1,6 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Inter, Tektur, JetBrains_Mono } from "next/font/google";
-import Header from "@/ui/components/Header";
-import { Footer } from "@/ui/components/Footer";
 import "./globals.css";
 
 /* =========================
@@ -161,8 +159,6 @@ interface RootLayoutProps {
 	children: React.ReactNode;
 }
 
-const CHANNEL = process.env.NEXT_PUBLIC_DEFAULT_CHANNEL || "default-channel";
-
 export default function RootLayout({ children }: RootLayoutProps) {
 	return (
 		<html
@@ -202,11 +198,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
 				{/* App Shell */}
 				<div className="relative flex min-h-screen flex-col">
-					<Header channel={CHANNEL} />
 					<main id="main-content" className="relative z-base flex-1">
 						{children}
 					</main>
-					<Footer channel={CHANNEL} />
 				</div>
 
 				{/* Performance / Preload helper script */}
